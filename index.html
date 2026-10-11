@@ -183,6 +183,30 @@ td{padding:8px 9px;border-top:1px solid #232836;color:#C8D1DE}
 ::-webkit-scrollbar-track{background:rgba(0,0,0,.12)}
 ::-webkit-scrollbar-thumb{background:var(--gold);border-radius:4px}
 
+/* design detail view */
+.ph[data-view]{cursor:pointer}
+.vlink{margin-top:8px;font-size:11.5px;font-weight:700;color:var(--bur);cursor:pointer;text-decoration:underline}
+.dbody{overflow-y:auto}
+.dwrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;padding:18px}
+.dwrap img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:12px;border:1px solid #E8DFC8;background:#F5EFE6}
+.dinfo .col{font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+.dinfo h3{font:700 22px Georgia,serif;color:var(--bur);margin:4px 0 10px}
+.dinfo p{font-size:13px;line-height:1.55;color:#5a4d44}
+.dtable{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.dtable div{background:#fff;border:1px solid #EDE5D8;border-radius:8px;padding:7px 9px}
+.dtable span{display:block;font-size:10px;color:#857468;text-transform:uppercase;font-weight:700}
+.dtable b{font-size:13px;color:var(--char)}
+.dbtn{width:100%;padding:11px;border-radius:10px;font-weight:700;font-size:13px;border:0;color:#fff;background:linear-gradient(145deg,#671126,#430715)}
+.dbtn.off{background:#FBEAEA;color:#9A2234;border:1px solid #EAA2AC}
+.dbtn.dis{background:#ECE6DA;color:#8a7d6c;cursor:not-allowed}
+.sim-h{padding:4px 18px 0;font:700 16px Georgia,serif;color:var(--bur)}
+.simgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;padding:10px 18px 18px}
+.scard{background:#fff;border:1px solid #E8DFC8;border-radius:12px;overflow:hidden;cursor:pointer}
+.scard:hover{border-color:var(--gold)}
+.scard img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block}
+.scard div{padding:8px;font-size:12px;line-height:1.35}
+.scard small{color:#857468}
+@media (max-width:700px){.dwrap{grid-template-columns:1fr}}
 @media (max-width:900px){
   body{overflow:auto}
   #ground{grid-template-columns:1fr;height:auto}
@@ -416,6 +440,27 @@ td{padding:8px 9px;border-top:1px solid #232836;color:#C8D1DE}
   </div>
 </div>
 
+<!-- DESIGN DETAIL MODAL -->
+<div id="detail-modal" class="modal hide">
+  <div class="mcard wide">
+    <div class="mh"><button class="x" id="d-x" aria-label="Close">×</button><h3>Design details</h3></div>
+    <div class="dbody" id="detail-body">
+      <div class="dwrap">
+        <img id="d-img" alt="">
+        <div class="dinfo">
+          <div class="col" id="d-col"></div>
+          <h3 id="d-title"></h3>
+          <p id="d-desc"></p>
+          <div class="dtable" id="d-table"></div>
+          <button class="dbtn" id="d-btn"></button>
+        </div>
+      </div>
+      <div class="sim-h">You may also like</div>
+      <div class="simgrid" id="d-sim"></div>
+    </div>
+  </div>
+</div>
+
 <div id="toast" class="toast hide"></div>
 
 <script>
@@ -619,10 +664,10 @@ function sync() {
     const mine = shortlist.includes(i.id), blocked = !mine && i.status !== 'Available';
     return `<div class="card ${mine ? 'sel' : ''} ${blocked ? 'held' : ''}">
       <div>
-        <div class="ph"><img src="${i.img}" alt="${i.title}"><span class="b1">${i.metal === 'Platinum' ? 'Platinum ' + i.purity : i.purity + ' ' + (i.metal === '18K Diamond' ? 'Diamond' : 'Gold')}</span><span class="b2">${i.code}</span></div>
+        <div class="ph" data-view="${i.id}"><img src="${i.img}" alt="${i.title}"><span class="b1">${i.metal === 'Platinum' ? 'Platinum ' + i.purity : i.purity + ' ' + (i.metal === '18K Diamond' ? 'Diamond' : 'Gold')}</span><span class="b2">${i.code}</span></div>
         <div class="cbody"><div class="col">${i.collection}</div><h4>${i.title}</h4>
           <div class="wts"><div><span>Net wt</span><b>${i.net} g</b></div><div class="g"><span>Gross wt</span><b>${i.gross} g</b></div></div>
-          <div class="loc">${i.floor} • ${i.counter}</div></div>
+          <div class="loc">${i.floor} • ${i.counter}</div><div class="vlink" data-view="${i.id}">View details →</div></div>
       </div>
       <div class="cbtn"><button data-id="${i.id}" class="${mine ? 'off' : blocked ? 'dis' : ''}" ${blocked ? 'disabled' : ''}>
         ${mine ? 'Remove from shortlist' : blocked ? 'Being viewed by another customer' : 'Add to shortlist'}</button></div>
@@ -712,6 +757,29 @@ function openCompare() {
         <div class="loc">${i.floor} • ${i.counter} • ${i.tray}</div></div></div>`).join('');
   $('cmp-modal').classList.remove('hide');
 }
+
+let detailId = null;
+function openDetail(id, keepScroll) {
+  const it = inv.find(i => i.id === id); if (!it) return;
+  detailId = id;
+  const mine = shortlist.includes(id), blocked = !mine && it.status !== 'Available';
+  const stoneTxt = it.stone > 0 ? ', including about ' + it.stone + ' g of stones' : ', with no stones';
+  $('d-img').src = it.img; $('d-img').alt = it.title;
+  $('d-col').textContent = it.collection;
+  $('d-title').textContent = it.title;
+  $('d-desc').textContent = it.title + ' is a ' + it.style.toLowerCase() + ' piece in ' + it.metal + ' from the ' + it.collection + ' collection. It has ' + it.net + ' g of net gold (' + it.gross + ' g gross' + stoneTxt + '). You can see it at ' + it.floor + ', ' + it.counter + ', ' + it.tray + '.';
+  $('d-table').innerHTML = [['Metal', it.metal], ['Purity', it.purity], ['Net weight', it.net + ' g'], ['Gross weight', it.gross + ' g'], ['Stone weight', it.stone + ' g'], ['Style', it.style], ['Design code', it.code], ['Location', it.floor + ', ' + it.counter], ['Tray', it.tray], ['Availability', mine ? 'In your shortlist' : it.status === 'Available' ? 'Available to view' : 'With another customer']]
+    .map(r => `<div><span>${r[0]}</span><b>${r[1]}</b></div>`).join('');
+  const btn = $('d-btn');
+  btn.textContent = mine ? 'Remove from shortlist' : blocked ? 'Being viewed by another customer' : 'Add to shortlist';
+  btn.disabled = blocked; btn.className = 'dbtn ' + (mine ? 'off' : blocked ? 'dis' : '');
+  const score = x => Math.abs(x.net - it.net) + (x.style === it.style ? 0 : 3);
+  const sim = inv.filter(x => x.id !== id && x.category === it.category && x.metal === it.metal && x.status !== 'Sold').sort((a, b) => score(a) - score(b)).slice(0, 4);
+  $('d-sim').innerHTML = sim.length ? sim.map(x => `<div class="scard" data-view="${x.id}"><img src="${x.img}" alt=""><div><b>${x.title}</b><br><small>${x.net} g • ${x.floor}</small></div></div>`).join('') : '<p style="color:#857468;font-size:12px">No similar designs right now.</p>';
+  $('detail-modal').classList.remove('hide');
+  if (!keepScroll) $('detail-body').scrollTop = 0;
+}
+function closeDetail() { $('detail-modal').classList.add('hide'); }
 
 function renderFloor() {
   const box = $('floor-result');
@@ -814,6 +882,12 @@ function init() {
   $('c-name').addEventListener('input', sync);
   $('tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setMode(b.dataset.mode); });
   $('k-grid').addEventListener('click', e => { const b = e.target.closest('button[data-id]'); if (b && !b.disabled) toggle(b.dataset.id); });
+  $('k-grid').addEventListener('click', e => { const v = e.target.closest('[data-view]'); if (v) openDetail(v.dataset.view); });
+  $('d-sim').addEventListener('click', e => { const v = e.target.closest('[data-view]'); if (v) openDetail(v.dataset.view); });
+  $('d-btn').addEventListener('click', () => { if (detailId) { toggle(detailId); openDetail(detailId, true); } });
+  $('d-x').addEventListener('click', closeDetail);
+  $('detail-modal').addEventListener('click', e => { if (e.target === $('detail-modal')) closeDetail(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
   $('btn-pass').addEventListener('click', issuePass);
   $('btn-compare').addEventListener('click', openCompare);
   $('btn-compare-staff').addEventListener('click', openCompare);
