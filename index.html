@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GRT Smart Jewellery Access (Prototype)</title>
+<style>
+:root{
+  --bur:#671126; --bur2:#450917; --gold:#C5A059; --gold2:#E7D1A0;
+  --ivory:#FAF8F5; --char:#2A2421; --bg:#0E1015; --panel:#151820; --panel2:#10131A;
+  --line:#262B38; --mute:#8692A6; --ok:#34d399; --warn:#f59e0b; --bad:#fb7185;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:#ECEFF4;display:flex;flex-direction:column;overflow:hidden;font-size:13px}
+.serif{font-family:Georgia,"Times New Roman",serif}
+.gold{color:var(--gold)}
+button{font-family:inherit;cursor:pointer}
+.hide{display:none!important}
+
+/* header */
+.hdr{background:#14161D;border-bottom:1px solid var(--line);padding:8px 14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;flex-shrink:0}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:34px;height:34px;border-radius:50%;background:linear-gradient(145deg,#671126,#430715);border:1px solid rgba(197,160,89,.6);display:flex;align-items:center;justify-content:center;font:700 12px Georgia,serif;color:var(--gold2)}
+.brand b{font:700 14px Georgia,serif;color:var(--gold2);letter-spacing:.08em}
+.brand small{display:block;color:var(--mute);font-size:11px}
+.tag{background:var(--bur);color:#fff;font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid rgba(197,160,89,.4);margin-left:6px}
+.tabs{display:flex;gap:4px;background:#0C0E12;padding:4px;border-radius:12px;border:1px solid #262C3A;overflow-x:auto}
+.tabs button{background:none;border:0;color:var(--mute);padding:7px 12px;border-radius:9px;font-size:12px;font-weight:600;white-space:nowrap}
+.tabs button:hover{color:#fff}
+.tabs button.on{background:var(--bur);color:#fff}
+.hright{display:flex;gap:10px;align-items:center}
+.btn-gold{background:linear-gradient(135deg,#DFBD74,#C5A059 50%,#9F7B35);color:var(--char);border:0;border-radius:10px;padding:8px 14px;font-weight:700;font-size:12px}
+.btn-gold:hover{filter:brightness(1.08)}
+.btn-bur{background:linear-gradient(145deg,#671126,#430715);color:#fff;border:1px solid rgba(197,160,89,.45);border-radius:10px;padding:8px 14px;font-weight:700;font-size:12px}
+.btn-bur:hover{filter:brightness(1.15)}
+.btn-ghost{background:#202533;color:#dbe2ee;border:1px solid #3A4357;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600}
+.btn-ghost:hover{background:#2a3144}
+.pill{padding:4px 10px;border-radius:999px;background:#39151D;border:1px solid rgba(197,160,89,.4);color:var(--gold2);font:600 11px Consolas,monospace}
+
+/* ground floor */
+main{flex:1;overflow:hidden;position:relative}
+#ground{height:100%;display:grid;grid-template-columns:5fr 7fr}
+#ground.only-staff{grid-template-columns:1fr}
+#ground.only-cust{grid-template-columns:1fr}
+.pane{overflow-y:auto;position:relative}
+#pane-staff{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;justify-content:space-between}
+#pane-cust{background:var(--ivory);color:var(--char);display:flex;flex-direction:column;overflow:hidden}
+.pad{padding:14px}
+.sec-h{display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:10px;border-bottom:1px solid #252B3B;margin-bottom:12px}
+.sec-h h2{font:700 16px Georgia,serif;color:var(--gold2)}
+.sec-h small{color:var(--mute);font-size:11px}
+.live{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:6px}
+.form{background:var(--panel2);border:1px solid #232836;border-radius:12px;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form .full{grid-column:1/-1}
+label{display:block;font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.04em;font-weight:700;margin-bottom:4px}
+input,select{width:100%;background:#181C26;border:1px solid #32394A;border-radius:8px;padding:8px;color:#fff;font:inherit;outline:none}
+input:focus,select:focus{border-color:var(--gold)}
+select option{background:#181C26;color:#fff}
+select{max-height:36px}
+.info{background:#141720;border:1px solid #2A3142;border-radius:8px;padding:9px;font-size:11px;display:grid;gap:4px}
+.info div{display:flex;justify-content:space-between;gap:8px}
+.info span{color:var(--mute)}
+.list-h{display:flex;justify-content:space-between;margin:14px 0 8px;font-size:11px}
+.list-h b{color:var(--gold2);text-transform:uppercase;letter-spacing:.05em}
+.list-h span{color:var(--mute)}
+#staff-list{display:grid;gap:7px;max-height:300px;overflow-y:auto;padding-right:4px}
+.srow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px;background:#181C26;border:1px solid #2A3142;border-radius:9px}
+.srow.sel{background:#291720;border-color:var(--gold)}
+.srow img{width:42px;height:42px;border-radius:6px;object-fit:cover;border:1px solid #3A4357;flex-shrink:0}
+.sinfo{flex:1;min-width:0;font-size:12px}
+.sinfo small{display:block;color:var(--mute);font-size:10px;margin-top:2px}
+.sprice{text-align:right;font:600 12px Consolas,monospace}
+.sprice small{display:block;color:var(--ok);font-size:9px;margin-top:2px}
+.empty{padding:14px;text-align:center;color:var(--mute);font-size:12px;line-height:1.5}
+.dock{padding:12px 14px;background:var(--panel2);border-top:1px solid #252B3B}
+.dock .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dock .foot{display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--mute)}
+.linkbtn{background:none;border:0;color:var(--gold);text-decoration:underline;font-size:11px}
+
+/* customer kiosk */
+.k-head{background:rgba(255,255,255,.95);border-bottom:1px solid #E8DFC8;padding:10px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-shrink:0}
+.k-head h3{font:700 17px Georgia,serif;color:var(--bur)}
+.k-head p{font-size:11px;color:#857468;margin-top:2px}
+.k-head p b{color:var(--bur)}
+.k-actions{display:flex;gap:8px;align-items:center}
+.cmp{background:#F8EFE2;border:1px solid #DFCEAF;color:var(--bur);border-radius:999px;padding:7px 12px;font-size:12px;font-weight:700;display:flex;gap:6px;align-items:center}
+.cmp i{font-style:normal;background:var(--bur);color:#fff;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px}
+.hold{background:#FFF5E6;border:1px solid rgba(243,156,18,.5);color:#9C5D00;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:700}
+.k-note{background:#F6EEDB;border-bottom:1px solid #E3D3B5;color:#735F4D;font-size:11.5px;padding:7px 18px;display:flex;justify-content:space-between;gap:10px;flex-shrink:0}
+.k-note b{color:var(--bur)}
+.k-body{flex:1;overflow-y:auto;padding:16px 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.card{background:#fff;border:1px solid #E8DFC8;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between}
+.card.sel{border-color:var(--gold);box-shadow:0 0 0 2px rgba(197,160,89,.4)}
+.card.held{opacity:.78}
+.ph{position:relative;aspect-ratio:1/1;background:#F5EFE6;overflow:hidden}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.ph .b1{position:absolute;top:8px;left:8px;background:var(--bur);color:var(--gold2);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px}
+.ph .b2{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.6);color:#fff;font:10px Consolas,monospace;padding:2px 6px;border-radius:4px}
+.cbody{padding:11px}
+.cbody .col{font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+.cbody h4{font:700 14px Georgia,serif;color:var(--char);margin:3px 0 9px;line-height:1.25}
+.wts{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.wts div{background:#FAF8F5;border:1px solid #EDE5D8;border-radius:8px;padding:6px}
+.wts span{display:block;font-size:9.5px;color:#857468;text-transform:uppercase;font-weight:700}
+.wts b{font:700 13px Consolas,monospace;color:var(--bur)}
+.wts div.g b{color:var(--char);font-weight:600}
+.loc{margin-top:8px;background:#F8EFE2;border-radius:8px;padding:6px 8px;font-size:11px;color:var(--bur);font-weight:600}
+.cbtn{margin:0 11px 11px}
+.cbtn button{width:100%;padding:8px;border-radius:10px;font-weight:700;font-size:12px;border:0;color:#fff;background:linear-gradient(145deg,#671126,#430715)}
+.cbtn button:hover{filter:brightness(1.15)}
+.cbtn button.off{background:#FBEAEA;color:#9A2234;border:1px solid #EAA2AC}
+.cbtn button.dis{background:#ECE6DA;color:#8a7d6c;cursor:not-allowed;filter:none}
+.k-foot{background:#fff;border-top:1px solid #E8DFC8;padding:8px 18px;display:flex;justify-content:space-between;font-size:11.5px;color:#857468;flex-shrink:0}
+.k-empty{grid-column:1/-1;text-align:center;padding:50px 20px;background:#fff;border:1px solid #E8DFC8;border-radius:14px}
+.k-empty b{font:700 16px Georgia,serif;color:var(--bur)}
+.k-empty p{color:#857468;margin-top:6px;font-size:12px;line-height:1.5}
+
+/* floor + manager */
+.view{height:100%;overflow-y:auto;background:#12141A;padding:20px}
+.wrap{max-width:1100px;margin:0 auto;display:grid;gap:16px}
+.v-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding-bottom:12px;border-bottom:1px solid #252A37}
+.v-head h2{font:700 20px Georgia,serif;color:var(--gold2)}
+.v-head small{color:var(--mute);font-size:12px}
+.box{background:#1A1D26;border:1px solid #2B3242;border-radius:14px;padding:16px}
+.scan{display:flex;gap:8px;margin-top:6px}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.kpi{background:#1A1D26;border:1px solid #2B3242;border-radius:12px;padding:12px}
+.kpi span{display:block;font-size:10px;color:var(--mute);text-transform:uppercase;font-weight:700}
+.kpi b{display:block;font:700 24px Consolas,monospace;margin-top:4px}
+.kpi small{font-size:10px;color:var(--mute)}
+.buckets{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.bk{background:#12141A;border:1px solid #252A37;border-radius:9px;padding:10px}
+.bk span{font-size:10px;font-weight:700;display:block}
+.bk b{font:700 18px Consolas,monospace}
+.bar{height:6px;background:#252A37;border-radius:4px;margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%}
+.tr-row{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#12141A;border:1px solid #252A37;border-radius:10px;padding:10px 12px;margin-top:8px}
+.tr-row small{color:var(--mute);display:block;margin-top:3px;font-size:11px}
+.fitem{display:flex;gap:12px;align-items:center;background:#10131A;border:1px solid #2B3242;border-radius:12px;padding:10px}
+.fitem img{width:84px;height:84px;border-radius:9px;object-fit:cover;border:1px solid rgba(197,160,89,.4)}
+.fitem .t{flex:1;font-size:12px}
+.fitem .t b{display:block;font:700 14px Georgia,serif;color:#fff;margin:2px 0}
+.fitem .loc2{display:inline-block;background:#1E2330;border:1px solid #30384A;border-radius:6px;padding:3px 7px;font:11px Consolas,monospace;color:var(--gold2);margin-top:4px}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:10px}
+.fbtns{display:flex;flex-direction:column;gap:6px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:#10131A;color:var(--mute);text-transform:uppercase;font-size:10px;text-align:left;padding:9px}
+td{padding:8px 9px;border-top:1px solid #232836;color:#C8D1DE}
+.tscroll{max-height:380px;overflow:auto;border-radius:10px;border:1px solid #232836}
+.st{padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700}
+.st.Available{background:#052e22;color:var(--ok)}
+.st.Shortlisted{background:#3b2a05;color:var(--warn)}
+.st.On-Hold,.st.With-Customer{background:#3a1220;color:var(--bad)}
+.st.Sold{background:#10243f;color:#60a5fa}
+
+/* modals */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:50;display:flex;align-items:center;justify-content:center;padding:14px}
+.mcard{background:var(--ivory);color:var(--char);width:100%;max-width:440px;border-radius:16px;border:2px solid var(--gold);overflow:hidden;display:flex;flex-direction:column;max-height:94vh}
+.mcard.wide{max-width:1000px}
+.mh{background:linear-gradient(145deg,#671126,#430715);color:#fff;padding:14px;text-align:center;position:relative}
+.mh small{display:block;color:var(--gold2);font:700 11px Georgia,serif;letter-spacing:.1em}
+.mh h3{font:700 17px Georgia,serif;margin-top:2px}
+.mh .x{position:absolute;top:10px;right:12px;background:none;border:0;color:rgba(255,255,255,.8);font-size:20px}
+.mb{padding:16px;overflow-y:auto;font-size:12px;display:grid;gap:12px}
+.meta{background:#fff;border:1px solid #E5DAC1;border-radius:10px;padding:10px;display:grid;gap:6px}
+.meta div{display:flex;justify-content:space-between;gap:8px}
+.meta span{color:#857468}
+.dest{background:#F8EFE2;border:2px solid var(--gold);border-radius:10px;padding:10px;text-align:center}
+.dest small{font-size:10px;color:var(--bur);font-weight:700;letter-spacing:.1em}
+.dest h4{font:700 15px Georgia,serif;color:var(--bur);margin:3px 0}
+.qr{display:flex;flex-direction:column;align-items:center;background:#fff;border:1px solid #E5DAC1;border-radius:10px;padding:10px}
+.qr svg{width:130px;height:130px}
+.qr small{color:#857468;font-size:10px;margin-top:4px;text-align:center}
+.pi{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px solid #F2ECE1}
+.mf{background:#fff;border-top:1px solid #E5DAC1;padding:12px;display:flex;gap:8px}
+.mf button{flex:1}
+.mf .dk{background:#202530;color:#fff;border:0;border-radius:10px;padding:8px;font-weight:700;font-size:12px}
+.cmpgrid{display:grid;grid-auto-flow:column;grid-auto-columns:250px;gap:14px;overflow-x:auto;padding:16px}
+.toast{position:fixed;right:18px;bottom:18px;z-index:60;background:#1A1D26;color:#fff;border:1px solid var(--gold);border-radius:12px;padding:11px 14px;font-size:12px;font-weight:600;max-width:340px}
+::-webkit-scrollbar{width:7px;height:7px}
+::-webkit-scrollbar-track{background:rgba(0,0,0,.12)}
+::-webkit-scrollbar-thumb{background:var(--gold);border-radius:4px}
+
+@media (max-width:900px){
+  body{overflow:auto}
+  #ground{grid-template-columns:1fr;height:auto}
+  .kpis,.buckets{grid-template-columns:repeat(2,1fr)}
+  main{overflow:visible}
+}
+@media print{
+  body>*:not(#pass-modal){display:none!important}
+  #pass-modal{position:static;background:#fff;padding:0;display:block}
+  .noprint{display:none!important}
+  .mcard{max-width:100%;border:1px solid #999}
+}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="brand">
+    <div class="logo">GRT</div>
+    <div>
+      <b>GRT JEWELLERS<span class="tag">SMART ACCESS PROTOTYPE</span></b>
+      <small>T. Nagar Flagship, Chennai • Ground floor digital concierge</small>
+    </div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button data-mode="dual" class="on">Ground floor: both screens</button>
+    <button data-mode="staff">Staff console</button>
+    <button data-mode="cust">Customer display</button>
+    <button data-mode="floor">Upper floor counter</button>
+    <button data-mode="mgr">Manager desk</button>
+  </nav>
+  <div class="hright">
+    <button class="btn-gold" id="btn-demo">Run 5 g earring demo</button>
+    <span class="pill hide" id="timer-pill">Hold 15:00</span>
+  </div>
+</header>
+
+<main>
+  <!-- GROUND FLOOR -->
+  <div id="ground">
+    <section class="pane" id="pane-staff">
+      <div class="pad">
+        <div class="sec-h">
+          <div>
+            <small><span class="live"></span>Ground floor • Desk 02</small>
+            <h2>Customer requirement entry</h2>
+          </div>
+          <small>Assoc. S. Rajesh</small>
+        </div>
+
+        <div class="form">
+          <div>
+            <label for="c-name">Customer name</label>
+            <input id="c-name" value="Smt. Ananya Krishnan">
+          </div>
+          <div>
+            <label for="c-phone">Mobile (for pass SMS)</label>
+            <input id="c-phone" value="+91 98401 23456">
+          </div>
+          <div>
+            <label for="f-cat">Category</label>
+            <select id="f-cat"></select>
+          </div>
+          <div>
+            <label for="f-metal">Metal and purity</label>
+            <select id="f-metal"></select>
+          </div>
+          <div>
+            <label for="f-wt">Target weight (g)</label>
+            <select id="f-wt"></select>
+          </div>
+          <div>
+            <label for="f-tol">Weight tolerance (± g)</label>
+            <select id="f-tol"></select>
+          </div>
+          <div>
+            <label for="f-bud">Internal budget range (staff only)</label>
+            <select id="f-bud"></select>
+          </div>
+          <div>
+            <label for="f-style">Style</label>
+            <select id="f-style"></select>
+          </div>
+          <div class="info full">
+            <div><span>Matching designs in this branch</span><b class="gold" id="match-count">0 designs</b></div>
+            <div><span>Demo rates used (per g)</span><b id="rate-line"></b></div>
+            <div><span>Price visibility</span><b style="color:var(--ok)">Staff only. Hidden on customer display</b></div>
+          </div>
+        </div>
+
+        <div class="list-h"><b>Matching pieces (staff view)</b><span>Customer display updates live</span></div>
+        <div id="staff-list"></div>
+      </div>
+
+      <div class="dock">
+        <div class="row">
+          <button class="btn-bur" id="btn-compare-staff">Compare shortlist</button>
+          <button class="btn-gold" id="btn-pass">Issue smart pass and hold</button>
+        </div>
+        <div class="foot">
+          <span>Shortlisted pieces are held for 15 minutes</span>
+          <button class="linkbtn" id="btn-reset">Reset session</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="pane" id="pane-cust">
+      <div class="k-head">
+        <div style="display:flex;gap:10px;align-items:center">
+          <div class="logo">GRT</div>
+          <div>
+            <h3>Discover your perfect jewellery</h3>
+            <p>Curated for <b id="k-name">Smt. Ananya Krishnan</b> • T. Nagar branch collection</p>
+          </div>
+        </div>
+        <div class="k-actions">
+          <button class="cmp" id="btn-compare">Compare shortlist <i id="k-badge">0</i></button>
+          <span class="hold hide" id="k-hold">Hold 15:00</span>
+        </div>
+      </div>
+      <div class="k-note">
+        <span>Final price, gold rate and billing are provided at the counter. Pieces stay at their counter until you arrive.</span>
+        <b>Select up to 5</b>
+      </div>
+      <div class="k-body"><div class="grid" id="k-grid"></div></div>
+      <div class="k-foot">
+        <span>Your associate prints a pass with the floor and counter for each piece.</span>
+        <span class="serif" style="color:var(--bur)">Illustrative images, demo data</span>
+      </div>
+    </section>
+  </div>
+
+  <!-- UPPER FLOOR -->
+  <div id="view-floor" class="view hide">
+    <div class="wrap">
+      <div class="v-head">
+        <div>
+          <h2>Floor 3: Counter G-04 reception</h2>
+          <small>Verify the customer's pass, then pull only the shortlisted pieces from their trays</small>
+        </div>
+        <span class="pill">FL3-COUNTER-G04</span>
+      </div>
+      <div class="box">
+        <label for="tok">Enter pass token (or scan the QR on the printed pass)</label>
+        <div class="scan">
+          <input id="tok" placeholder="e.g. GRT-PASS-4821">
+          <button class="btn-gold" id="btn-verify">Verify pass</button>
+          <button class="btn-ghost" id="btn-lasttok">Use latest pass</button>
+        </div>
+      </div>
+      <div id="floor-result"></div>
+    </div>
+  </div>
+
+  <!-- MANAGER -->
+  <div id="view-mgr" class="view hide">
+    <div class="wrap">
+      <div class="v-head">
+        <div>
+          <h2>Branch manager desk</h2>
+          <small>Live numbers calculated from the demo inventory</small>
+        </div>
+      </div>
+      <div class="kpis" id="kpis"></div>
+      <div class="box">
+        <h4 class="serif gold" style="margin-bottom:10px">Stock ageing</h4>
+        <div class="buckets" id="buckets"></div>
+      </div>
+      <div class="box">
+        <h4 class="serif gold">Suggested transfers (demo rule)</h4>
+        <small style="color:var(--mute)">Pieces older than 180 days are suggested for another branch. This is simple demo logic, not real demand data.</small>
+        <div id="transfers"></div>
+      </div>
+      <div class="box">
+        <h4 class="serif gold" style="margin-bottom:10px">Master inventory ledger</h4>
+        <div class="tscroll">
+          <table>
+            <thead><tr><th>Code</th><th>Piece</th><th>Purity</th><th>Net wt</th><th>Location</th><th>Internal est.</th><th>Age</th><th>Status</th></tr></thead>
+            <tbody id="ledger"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- PASS MODAL -->
+<div id="pass-modal" class="modal hide">
+  <div class="mcard" id="pass-card">
+    <div class="mh">
+      <button class="x noprint" id="pass-x" aria-label="Close">×</button>
+      <small>GRT JEWELLERS</small>
+      <h3>Smart access floor pass</h3>
+    </div>
+    <div class="mb">
+      <div class="meta">
+        <div><span>Pass token</span><b id="p-token" style="color:var(--bur);font-family:Consolas,monospace"></b></div>
+        <div><span>Customer</span><b id="p-name"></b></div>
+        <div><span>Hold</span><b style="color:#92400e">15 minutes from issue</b></div>
+      </div>
+      <div class="dest">
+        <small>PROCEED TO</small>
+        <h4 id="p-floor"></h4>
+        <p id="p-counter" style="color:#857468;font-weight:600"></p>
+      </div>
+      <div class="qr">
+        <div id="p-qr"></div>
+        <small>Demo pattern, not a scannable QR. Type the token on the Upper floor tab.</small>
+      </div>
+      <div>
+        <b style="color:var(--bur)">Reserved pieces</b>
+        <div id="p-items" style="margin-top:4px"></div>
+      </div>
+    </div>
+    <div class="mf noprint">
+      <button class="dk" id="btn-print">Print slip</button>
+      <button class="btn-gold" id="btn-walk">Walk to upper floor</button>
+    </div>
+  </div>
+</div>
+
+<!-- COMPARE MODAL -->
+<div id="cmp-modal" class="modal hide">
+  <div class="mcard wide">
+    <div class="mh">
+      <button class="x" id="cmp-x" aria-label="Close">×</button>
+      <h3>Side-by-side comparison</h3>
+    </div>
+    <div class="cmpgrid" id="cmp-grid"></div>
+    <div class="mf"><button class="btn-gold" id="cmp-pass">Confirm shortlist and issue pass</button></div>
+  </div>
+</div>
+
+<div id="toast" class="toast hide"></div>
+
+<script>
+"use strict";
+/* =====================================================================
+   2. INVENTORY (demo data). Edit rows here to add or change jewellery.
+   Row: [id, category, artwork, title, metal, netWt, stoneWt, style,
+         collection, floor, counter, tray, makingCharge%, daysInStock, status]
+   ===================================================================== */
+const RATE = { "22K Gold": 6840, "18K Diamond": 5600, "24K Pure": 7460, "Platinum": 3300 };
+const STONE_RATE = { "22K Gold": 3000, "18K Diamond": 45000, "24K Pure": 0, "Platinum": 45000 };
+const PURITY = { "22K Gold": "22K", "18K Diamond": "18K", "24K Pure": "24K", "Platinum": "950" };
+const TP = 'Temple / Antique', BR = 'Bridal', LD = 'Lightweight Daily', CT = 'Contemporary';
+
+const ROWS = [
+  // ---- Earrings, 22K: twelve pieces between 4.5 g and 5.5 g ----
+  ['GRT-EAR-501','Earrings','jhumka','Antique Temple Peacock Jhumka','22K Gold',4.95,0.23,TP,'GRT Oriana Bridal','Floor 3','Counter G-04','Tray 12',14,18],
+  ['GRT-EAR-502','Earrings','drop','Floral Filigree Drops','22K Gold',4.85,0,LD,'GRT Daily Radiance','Floor 3','Counter G-04','Tray 05',12,8],
+  ['GRT-EAR-503','Earrings','chandbali','Heritage Chandbali with Pearl Tassels','22K Gold',5.02,0.32,BR,'Kalyanam Legacy','Floor 3','Counter G-02','Tray 18',16,45],
+  ['GRT-EAR-504','Earrings','hoop','Geometric Sui Dhaga Threaders','22K Gold',4.90,0,CT,'Celeste Urban','Floor 3','Counter G-04','Tray 02',11,12],
+  ['GRT-EAR-505','Earrings','drop','Lakshmi Kasu Embossed Drops','22K Gold',5.12,0,TP,'Auspicious Heritage','Floor 3','Counter G-04','Tray 14',13,95,'On Hold'],
+  ['GRT-EAR-506','Earrings','jhumka','Peacock Motif Jhumki','22K Gold',4.60,0.05,TP,'GRT Oriana Bridal','Floor 3','Counter G-04','Tray 11',13,22],
+  ['GRT-EAR-507','Earrings','hoop','Contemporary Hoop Bali','22K Gold',5.30,0,CT,'Celeste Urban','Floor 3','Counter G-04','Tray 03',11,14],
+  ['GRT-EAR-508','Earrings','chandbali','Grand Bridal Chandbali','22K Gold',5.45,0.40,BR,'Kalyanam Legacy','Floor 3','Counter G-02','Tray 19',16,60],
+  ['GRT-EAR-509','Earrings','stud','Floral Cluster Ear Studs','22K Gold',4.70,0,LD,'GRT Daily Radiance','Floor 3','Counter G-04','Tray 06',12,9],
+  ['GRT-EAR-510','Earrings','jhumka','Temple Lakshmi Jhumki','22K Gold',5.20,0.30,TP,'Auspicious Heritage','Floor 3','Counter G-04','Tray 13',14,130],
+  ['GRT-EAR-511','Earrings','drop','Pearl Drop Daily Earrings','22K Gold',4.55,0.20,LD,'GRT Daily Radiance','Floor 3','Counter G-04','Tray 07',12,11],
+  ['GRT-EAR-512','Earrings','hoop','Modern Geometric Hoops','22K Gold',5.00,0,CT,'Celeste Urban','Floor 3','Counter G-04','Tray 04',11,27],
+  // ---- Earrings, 22K: other weights ----
+  ['GRT-EAR-513','Earrings','stud','Mini Floral Ear Tops','22K Gold',2.10,0,LD,'GRT Daily Radiance','Floor 3','Counter G-04','Tray 03',12,6],
+  ['GRT-EAR-514','Earrings','jhumka','Lightweight Peacock Jhumki','22K Gold',3.15,0.05,TP,'GRT Oriana Bridal','Floor 3','Counter G-04','Tray 12',13,22],
+  ['GRT-EAR-515','Earrings','hoop','Everyday Hoop Bali','22K Gold',3.80,0,CT,'Celeste Urban','Floor 3','Counter G-04','Tray 02',11,14],
+  ['GRT-EAR-516','Earrings','chandbali','Large Bridal Chandbali','22K Gold',8.40,0.60,BR,'Kalyanam Legacy','Floor 3','Counter G-02','Tray 18',16,60],
+  ['GRT-EAR-517','Earrings','jhumka','Grand Temple Lakshmi Jhumka','22K Gold',10.20,0.45,TP,'Auspicious Heritage','Floor 3','Counter G-02','Tray 14',15,205],
+  ['GRT-EAR-518','Earrings','drop','Bridal Pearl Drop Earrings','22K Gold',6.80,0.40,BR,'Kalyanam Legacy','Floor 3','Counter G-02','Tray 17',15,33],
+  // ---- Earrings, 18K diamond ----
+  ['GRT-DIA-601','Earrings','stud','VVS Solitaire Aura Studs','18K Diamond',4.10,0.30,CT,'Celeste Diamonds','Floor 1','Counter D-03','Tray 03',18,35,'Sold'],
+  ['GRT-DIA-602','Earrings','stud','Diamond Cluster Floral Studs','18K Diamond',3.20,0.40,CT,'Celeste Diamonds','Floor 1','Counter D-03','Tray 05',18,20],
+  ['GRT-DIA-603','Earrings','jhumka','Diamond Bridal Jhumka','18K Diamond',7.50,1.10,BR,'Celeste Diamonds','Floor 1','Counter D-01','Tray 02',18,75],
+  ['GRT-DIA-604','Earrings','drop','Diamond Teardrop Earrings','18K Diamond',5.00,0.55,BR,'Celeste Diamonds','Floor 1','Counter D-01','Tray 04',18,41],
+  // ---- Necklaces ----
+  ['GRT-NCK-801','Necklaces','mango','Royal Chettinad Mango Mala','22K Gold',37.20,1.30,BR,'Kalyanam Legacy','Floor 2','Counter N-01','Tray 01',15,280],
+  ['GRT-NCK-802','Necklaces','pendant','Chain with Lotus Pendant','22K Gold',8.50,0,LD,'GRT Daily Radiance','Floor 2','Counter N-02','Tray 04',12,20],
+  ['GRT-NCK-803','Necklaces','haram','Lakshmi Coin Haram','22K Gold',45.00,0,TP,'Auspicious Heritage','Floor 2','Counter N-01','Tray 03',14,150],
+  ['GRT-NCK-804','Necklaces','haram','Bridal Kasu Mala Long Haram','22K Gold',62.50,0.50,BR,'Kalyanam Legacy','Floor 2','Counter N-01','Tray 02',15,85],
+  ['GRT-NCK-805','Necklaces','layered','Contemporary Layered Necklace','22K Gold',18.20,0,CT,'Celeste Urban','Floor 2','Counter N-02','Tray 07',12,40],
+  ['GRT-NCK-806','Necklaces','mango','Mango Mala Short Necklace','22K Gold',28.00,0.40,TP,'Vintage Sovereign','Floor 2','Counter N-01','Tray 05',14,210],
+  ['GRT-NCK-807','Necklaces','choker','Temple Collar Choker','22K Gold',22.40,0.60,TP,'Vintage Sovereign','Floor 2','Counter N-01','Tray 06',14,70],
+  ['GRT-NCK-808','Necklaces','pendant','Daily Pendant Necklace','22K Gold',5.20,0,LD,'GRT Daily Radiance','Floor 2','Counter N-02','Tray 02',12,16],
+  ['GRT-NCK-809','Necklaces','choker','Bridal Ruby Choker','22K Gold',34.00,1.00,BR,'Kalyanam Legacy','Floor 2','Counter N-01','Tray 01',15,55],
+  ['GRT-NCK-810','Necklaces','layered','Slim Layered Necklace','22K Gold',12.00,0,CT,'Celeste Urban','Floor 2','Counter N-02','Tray 08',12,30],
+  ['GRT-NCK-811','Necklaces','pendant','Daily Floral Pendant Necklace','22K Gold',4.80,0,LD,'GRT Daily Radiance','Floor 2','Counter N-02','Tray 03',12,12],
+  ['GRT-DIA-611','Necklaces','pendant','Diamond Solitaire Pendant Necklace','18K Diamond',4.80,0.35,CT,'Celeste Diamonds','Floor 1','Counter D-03','Tray 06',18,25],
+  ['GRT-DIA-612','Necklaces','choker','Diamond Bridal Choker','18K Diamond',24.00,3.20,BR,'Celeste Diamonds','Floor 1','Counter D-01','Tray 01',18,190],
+  // ---- Chains ----
+  ['GRT-CHN-201','Chains','rope','Rope Chain, 20 inch','22K Gold',10.00,0,LD,'GRT Daily Radiance','Floor 2','Counter C-01','Tray 02',10,24],
+  ['GRT-CHN-202','Chains','curb','Curb Chain for Men','22K Gold',15.00,0,CT,'GRT Gents','Floor 2','Counter C-01','Tray 04',10,60],
+  ['GRT-CHN-203','Chains','box','Box Chain','22K Gold',8.00,0,LD,'GRT Daily Radiance','Floor 2','Counter C-01','Tray 03',10,17],
+  ['GRT-CHN-204','Chains','figaro','Figaro Chain','22K Gold',12.00,0,CT,'GRT Gents','Floor 2','Counter C-01','Tray 05',10,33],
+  ['GRT-CHN-205','Chains','singapore','Singapore Twist Chain','22K Gold',5.00,0,LD,'GRT Daily Radiance','Floor 2','Counter C-02','Tray 01',10,10],
+  ['GRT-CHN-206','Chains','curb','Slim Curb Chain','22K Gold',4.80,0,LD,'GRT Daily Radiance','Floor 2','Counter C-02','Tray 02',10,14],
+  ['GRT-CHN-207','Chains','box','Fine Box Chain','22K Gold',5.40,0,LD,'GRT Daily Radiance','Floor 2','Counter C-02','Tray 03',10,19],
+  ['GRT-CHN-208','Chains','rope','24K Pure Gold Rope Chain','24K Pure',10.00,0,LD,'GRT Pure Gold','Floor 2','Counter C-03','Tray 01',8,15],
+  ['GRT-CHN-209','Chains','figaro','24K Pure Gold Figaro Chain','24K Pure',20.00,0,CT,'GRT Pure Gold','Floor 2','Counter C-03','Tray 02',8,48],
+  ['GRT-CHN-210','Chains','curb','Heavy Curb Chain','22K Gold',25.00,0,CT,'GRT Gents','Floor 2','Counter C-01','Tray 06',10,120],
+  ['GRT-CHN-211','Chains','rope','Light Rope Chain','22K Gold',3.00,0,LD,'GRT Daily Radiance','Floor 2','Counter C-02','Tray 04',10,7],
+  ['GRT-CHN-212','Chains','curb','Platinum Curb Chain','Platinum',12.00,0,CT,'GRT Platinum','Floor 1','Counter P-01','Tray 02',15,22],
+  // ---- Bangles ----
+  ['GRT-BNG-301','Bangles','kada','Antique Elephant Head Gokhru Kada','22K Gold',24.20,0,TP,'Vintage Sovereign','Floor 2','Counter B-07','Tray 08',14,190],
+  ['GRT-BNG-302','Bangles','plain','Daily Wear Plain Bangle','22K Gold',8.00,0,LD,'GRT Daily Radiance','Floor 2','Counter B-03','Tray 02',11,10],
+  ['GRT-BNG-303','Bangles','set','Bridal Machine-Cut Bangle Set','22K Gold',40.00,0,BR,'Kalyanam Legacy','Floor 2','Counter B-03','Tray 05',13,55],
+  ['GRT-BNG-304','Bangles','kada','Temple Kemp Stone Kada','22K Gold',22.50,1.20,TP,'Vintage Sovereign','Floor 2','Counter B-07','Tray 09',15,100],
+  ['GRT-BNG-305','Bangles','bracelet','Slim Openable Bracelet','22K Gold',9.80,0,CT,'Celeste Urban','Floor 2','Counter B-03','Tray 09',12,25],
+  ['GRT-BNG-306','Bangles','stone','Ruby Stone Bangle','22K Gold',15.00,1.00,BR,'Kalyanam Legacy','Floor 2','Counter B-03','Tray 06',15,64],
+  ['GRT-BNG-307','Bangles','plain','Light Single Bangle','22K Gold',5.00,0,LD,'GRT Daily Radiance','Floor 2','Counter B-03','Tray 01',11,13],
+  ['GRT-BNG-308','Bangles','bracelet','Link Bracelet','22K Gold',6.00,0,CT,'Celeste Urban','Floor 2','Counter B-03','Tray 08',12,21],
+  ['GRT-BNG-309','Bangles','set','Daily Wear Bangle Set','22K Gold',20.00,0,LD,'GRT Daily Radiance','Floor 2','Counter B-03','Tray 03',11,38],
+  ['GRT-BNG-310','Bangles','kada','Heavy Bridal Kada','22K Gold',30.00,0.80,BR,'Kalyanam Legacy','Floor 2','Counter B-07','Tray 04',14,240],
+  // ---- Rings ----
+  ['GRT-RNG-401','Rings','band','Men\'s Plain Band Ring','22K Gold',6.20,0,CT,'GRT Gents','Floor 1','Counter R-02','Tray 01',12,30],
+  ['GRT-RNG-402','Rings','temple','Temple Lakshmi Ring','22K Gold',4.00,0.10,TP,'Auspicious Heritage','Floor 1','Counter R-02','Tray 03',13,70,'On Hold'],
+  ['GRT-RNG-403','Rings','solitaire','Solitaire Diamond Engagement Ring','18K Diamond',3.60,0.45,CT,'Celeste Diamonds','Floor 1','Counter D-03','Tray 04',18,48],
+  ['GRT-RNG-404','Rings','band','Platinum 950 Couple Band','Platinum',8.00,0,CT,'GRT Platinum','Floor 1','Counter P-01','Tray 01',15,18],
+  ['GRT-RNG-405','Rings','cluster','Cocktail Cluster Diamond Ring','18K Diamond',4.20,0.90,BR,'Celeste Diamonds','Floor 1','Counter D-01','Tray 06',18,120],
+  ['GRT-RNG-406','Rings','signet','Signet Ring for Men','22K Gold',7.50,0,CT,'GRT Gents','Floor 1','Counter R-02','Tray 02',12,52],
+  ['GRT-RNG-407','Rings','temple','Peacock Temple Ring','22K Gold',5.00,0.10,TP,'Auspicious Heritage','Floor 1','Counter R-02','Tray 05',13,26],
+  ['GRT-RNG-408','Rings','cluster','Ruby Cluster Ring','22K Gold',4.50,0.60,BR,'Kalyanam Legacy','Floor 1','Counter R-02','Tray 07',14,88],
+  ['GRT-RNG-409','Rings','band','Slim Daily Band','22K Gold',2.50,0,LD,'GRT Daily Radiance','Floor 1','Counter R-02','Tray 04',12,9],
+  ['GRT-RNG-410','Rings','solitaire','Platinum Solitaire Ring','Platinum',5.00,0.40,CT,'GRT Platinum','Floor 1','Counter P-01','Tray 03',15,33]
+];
+
+function build(r) {
+  const [id, cat, art, title, metal, net, stone, style, coll, floor, counter, tray, mc, days, status] = r;
+  const est = Math.round(((net * RATE[metal] * (1 + mc/100)) + stone * STONE_RATE[metal]) * 1.03 / 100) * 100;
+  return {
+    id, category: cat, title, metal, purity: PURITY[metal], net, stone,
+    gross: +(net + stone).toFixed(2), style, collection: coll, floor, counter, tray,
+    mc, days, status: status || 'Available', est,
+    code: 'D-' + id.split('-')[1][0] + id.split('-')[2],
+    img: ''
+  };
+}
+const inv = ROWS.map(build);
+
+/* ===== YOUR PHOTOS =====
+   Put the pictures in an "images" folder next to this file, or directly in the same folder as this file.
+   Earrings use images/<item id>.png (for example GRT-EAR-501.png).
+   Every other piece uses images/<category>_<style>.png (for example rings_solitaire.png).
+   png, jpg, jpeg and webp all work. A piece with no photo is hidden automatically. */
+const ROW_ART = Object.fromEntries(ROWS.map(r => [r[0], r[1].toLowerCase() + '_' + r[2]]));
+const PHOTO_EXTS = ['png', 'jpg', 'jpeg', 'webp'];
+const PLACEHOLDER = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600"><rect width="600" height="600" fill="#F5EFE6"/><text x="300" y="295" text-anchor="middle" font-family="Georgia,serif" font-size="32" fill="#671126">Photo not found</text><text x="300" y="340" text-anchor="middle" font-family="Georgia,serif" font-size="20" fill="#857468">Keep the images folder next to this file</text></svg>');
+const probeCache = {};
+function probe(url) {
+  if (!(url in probeCache)) probeCache[url] = new Promise(res => { const im = new Image(); im.onload = () => res(url); im.onerror = () => res(null); im.src = url; });
+  return probeCache[url];
+}
+function findPhoto(bases) {
+  const urls = [];
+  // looks inside the "images" folder first, then in the same folder as this page
+  bases.forEach(b => ['images/', ''].forEach(d => PHOTO_EXTS.forEach(x => urls.push(d + b + '.' + x))));
+  return urls.reduce((p, u) => p.then(found => found || probe(u)), Promise.resolve(null));
+}
+const PHOTOS_READY = Promise.all(inv.map(i => {
+  const art = ROW_ART[i.id], bases = [i.id, art];
+  if (art === 'necklaces_layered') bases.push('necklaces_layered.');   // tolerates a file named "necklaces_layered..png"
+  return findPhoto(bases).then(url => { i.img = url || ''; });
+})).then(() => {
+  if (!inv.some(i => i.img)) {
+    inv.forEach(i => { i.img = PLACEHOLDER; });
+    return 'No photos were found. Keep the "images" folder next to this HTML file and open the file again.';
+  }
+  const hidden = [];
+  for (let k = inv.length - 1; k >= 0; k--) if (!inv[k].img) hidden.push(inv.splice(k, 1)[0].id);
+  return hidden.length ? hidden.length + ' piece(s) hidden because no photo was found: ' + hidden.reverse().join(', ') : '';
+});
+/* ===== END YOUR PHOTOS ===== */
+
+/* =====================================================================
+   3. DROPDOWN OPTIONS
+   ===================================================================== */
+const CATS = ['Earrings', 'Necklaces', 'Chains', 'Bangles', 'Rings'];
+const METALS = ['22K Gold', '18K Diamond', '24K Pure', 'Platinum'];
+const STYLES = ['All', TP, BR, LD, CT];
+const WEIGHTS = [0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60];
+const TOLS = [0.25, 0.5, 1, 1.5, 2, 3, 5, 10];
+const BUDGETS = [
+  { l: 'Any budget', min: 0, max: Infinity },
+  { l: 'Up to ₹25,000', min: 0, max: 25000 },
+  { l: '₹25,000 to ₹50,000', min: 25000, max: 50000 },
+  { l: '₹50,000 to ₹1,00,000', min: 50000, max: 100000 },
+  { l: '₹1,00,000 to ₹2,00,000', min: 100000, max: 200000 },
+  { l: '₹2,00,000 to ₹5,00,000', min: 200000, max: 500000 },
+  { l: 'Above ₹5,00,000', min: 500000, max: Infinity }
+];
+
+/* =====================================================================
+   4. APP STATE AND HELPERS
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+const fmt = n => '₹' + Math.round(n).toLocaleString('en-IN');
+let shortlist = [], activeToken = '', timerId = null, secs = 0, formalHold = false, transferDecisions = {};
+
+function toast(msg, ms) {
+  const t = $('toast'); t.textContent = msg; t.classList.remove('hide');
+  clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.add('hide'), ms || 3200);
+}
+function fillSelect(id, opts, labelFn, valueFn) {
+  $(id).innerHTML = opts.map((o, i) => `<option value="${valueFn ? valueFn(o, i) : o}">${labelFn ? labelFn(o, i) : o}</option>`).join('');
+}
+
+function filtered() {
+  const cat = $('f-cat').value, metal = $('f-metal').value, style = $('f-style').value;
+  const tw = +$('f-wt').value, tol = +$('f-tol').value, bud = BUDGETS[+$('f-bud').value];
+  return inv.filter(i =>
+    i.status !== 'Sold' && i.category === cat && i.metal === metal &&
+    (style === 'All' || i.style === style) &&
+    (tw === 0 || Math.abs(i.net - tw) <= tol + 1e-9) &&
+    i.est >= bud.min && i.est <= bud.max
+  ).sort((a, b) => Math.abs(a.net - (+$('f-wt').value || a.net)) - Math.abs(b.net - (+$('f-wt').value || b.net)));
+}
+
+/* =====================================================================
+   5. GROUND FLOOR: STAFF LIST + CUSTOMER KIOSK (always in sync)
+   ===================================================================== */
+function sync() {
+  const list = filtered();
+  $('match-count').textContent = list.length + (list.length === 1 ? ' design' : ' designs');
+  $('k-name').textContent = $('c-name').value.trim() || 'Guest customer';
+  $('k-badge').textContent = shortlist.length;
+
+  $('staff-list').innerHTML = list.length ? list.map(i => `
+    <div class="srow ${shortlist.includes(i.id) ? 'sel' : ''}">
+      <img src="${i.img}" alt="">
+      <div class="sinfo"><b>${i.id}</b> <span class="gold">${i.net} g net</span>
+        <small>${i.floor} • ${i.counter} • ${i.tray}</small></div>
+      <div class="sprice">${fmt(i.est)}<small>MC ${i.mc}% • ${i.status}</small></div>
+    </div>`).join('') : `<div class="empty">No exact match in this branch.<br>Try a wider tolerance, a different budget range, or set the target weight to "Any weight".</div>`;
+
+  $('k-grid').innerHTML = list.length ? list.map(i => {
+    const mine = shortlist.includes(i.id), blocked = !mine && i.status !== 'Available';
+    return `<div class="card ${mine ? 'sel' : ''} ${blocked ? 'held' : ''}">
+      <div>
+        <div class="ph"><img src="${i.img}" alt="${i.title}"><span class="b1">${i.metal === 'Platinum' ? 'Platinum ' + i.purity : i.purity + ' ' + (i.metal === '18K Diamond' ? 'Diamond' : 'Gold')}</span><span class="b2">${i.code}</span></div>
+        <div class="cbody"><div class="col">${i.collection}</div><h4>${i.title}</h4>
+          <div class="wts"><div><span>Net wt</span><b>${i.net} g</b></div><div class="g"><span>Gross wt</span><b>${i.gross} g</b></div></div>
+          <div class="loc">${i.floor} • ${i.counter}</div></div>
+      </div>
+      <div class="cbtn"><button data-id="${i.id}" class="${mine ? 'off' : blocked ? 'dis' : ''}" ${blocked ? 'disabled' : ''}>
+        ${mine ? 'Remove from shortlist' : blocked ? 'Being viewed by another customer' : 'Add to shortlist'}</button></div>
+    </div>`;
+  }).join('') : `<div class="k-empty"><b>No designs match these choices</b><p>Ask your associate to widen the weight range or change the style.<br>New designs arrive at this branch every week.</p></div>`;
+}
+
+function toggle(id) {
+  const it = inv.find(i => i.id === id); if (!it) return;
+  if (shortlist.includes(id)) {
+    shortlist = shortlist.filter(x => x !== id); it.status = 'Available';
+    if (!shortlist.length) stopTimer();
+  } else {
+    if (it.status !== 'Available') { toast('This piece is already with another customer.'); return; }
+    if (shortlist.length >= 5) { toast('Up to 5 designs can be shortlisted per pass.'); return; }
+    shortlist.push(id); it.status = 'Shortlisted';
+    if (!timerId) startTimer(900, false);
+  }
+  sync();
+}
+
+function resetSession(silent) {
+  shortlist.forEach(id => { const it = inv.find(i => i.id === id); if (it && it.status !== 'Sold') it.status = 'Available'; });
+  shortlist = []; activeToken = ''; stopTimer();
+  if (!silent) { sync(); toast('Session reset. Pieces are back in the showroom list.'); }
+}
+
+/* ---- 15 minute hold timer ---- */
+function startTimer(seconds, formal) {
+  clearInterval(timerId); secs = seconds; formalHold = formal;
+  const paint = () => {
+    const m = String(Math.floor(secs / 60)).padStart(2, '0'), s = String(secs % 60).padStart(2, '0');
+    $('timer-pill').textContent = (formal ? 'Counter hold ' : 'Pass hold ') + m + ':' + s;
+    $('k-hold').textContent = (formal ? 'Counter hold ' : 'Hold ') + m + ':' + s;
+  };
+  $('timer-pill').classList.remove('hide'); $('k-hold').classList.remove('hide'); paint();
+  timerId = setInterval(() => {
+    secs--;
+    if (secs <= 0) { releaseAll(); toast('Hold expired. Pieces are available to other customers again.'); }
+    else paint();
+  }, 1000);
+}
+function stopTimer() {
+  clearInterval(timerId); timerId = null;
+  $('timer-pill').classList.add('hide'); $('k-hold').classList.add('hide');
+}
+function releaseAll() {
+  shortlist.forEach(id => { const it = inv.find(i => i.id === id); if (it && it.status !== 'Sold') it.status = 'Available'; });
+  shortlist = []; activeToken = ''; stopTimer(); sync(); renderFloor(); renderManager();
+}
+
+/* =====================================================================
+   6. PASS, COMPARE, UPPER FLOOR
+   ===================================================================== */
+function pseudoQr(text) {
+  let h = 0; for (const ch of text) h = ch.charCodeAt(0) + ((h << 5) - h);
+  let cells = '';
+  for (let r = 0; r < 14; r++) for (let q = 0; q < 14; q++) {
+    const corner = (r < 4 && q < 4) || (r < 4 && q > 9) || (r > 9 && q < 4);
+    if (!corner && Math.abs(Math.sin(h + r * 14 + q)) > .5) cells += `<rect x="${q*10}" y="${r*10}" width="9" height="9" fill="#2A2421"/>`;
+  }
+  const eye = (x, y) => `<rect x="${x}" y="${y}" width="36" height="36" fill="none" stroke="#2A2421" stroke-width="4"/><rect x="${x+8}" y="${y+8}" width="20" height="20" fill="#671126"/>`;
+  return `<svg viewBox="0 0 140 140">${cells}${eye(0,0)}${eye(104,0)}${eye(0,104)}</svg>`;
+}
+
+function issuePass() {
+  if (!shortlist.length) { toast('Shortlist at least one design first.'); return; }
+  activeToken = 'GRT-PASS-' + Math.floor(1000 + Math.random() * 9000);
+  const items = shortlist.map(id => inv.find(i => i.id === id)), first = items[0];
+  $('p-token').textContent = activeToken;
+  $('p-name').textContent = $('c-name').value.trim() || 'Guest customer';
+  $('p-floor').textContent = first.floor.toUpperCase() + ': ' + first.category.toUpperCase();
+  $('p-counter').textContent = first.counter + ' • ' + first.tray;
+  $('p-qr').innerHTML = pseudoQr(activeToken);
+  $('p-items').innerHTML = items.map((it, n) => `<div class="pi"><span>${n+1}. <b style="color:var(--bur)">${it.id}</b> ${it.title}</span><span>${it.net} g • ${it.floor}, ${it.counter}</span></div>`).join('');
+  startTimer(900, false);
+  $('pass-modal').classList.remove('hide');
+}
+
+function openCompare() {
+  if (!shortlist.length) { toast('Shortlist some designs to compare them.'); return; }
+  $('cmp-grid').innerHTML = shortlist.map(id => inv.find(i => i.id === id)).map(i => `
+    <div class="card"><div class="ph"><img src="${i.img}" alt=""></div>
+      <div class="cbody"><div class="col">${i.collection}</div><h4>${i.title}</h4>
+        <div class="wts"><div><span>Net wt</span><b>${i.net} g</b></div><div class="g"><span>Gross wt</span><b>${i.gross} g</b></div></div>
+        <div class="wts" style="margin-top:6px"><div class="g"><span>Purity</span><b>${i.purity}</b></div><div class="g"><span>Stone wt</span><b>${i.stone} g</b></div></div>
+        <div class="loc">${i.floor} • ${i.counter} • ${i.tray}</div></div></div>`).join('');
+  $('cmp-modal').classList.remove('hide');
+}
+
+function renderFloor() {
+  const box = $('floor-result');
+  if (!box.dataset.token) { box.innerHTML = ''; return; }
+  const items = shortlist.map(id => inv.find(i => i.id === id));
+  if (!items.length) { box.innerHTML = `<div class="box"><b class="gold">All pieces handled.</b><p style="color:var(--mute);margin-top:4px">Nothing left to pull for pass ${box.dataset.token}.</p></div>`; return; }
+  box.innerHTML = `<div class="box" style="border-color:var(--gold)">
+    <div class="v-head" style="border:0;padding-bottom:8px">
+      <div><small style="color:var(--ok);font-weight:700">PASS ${box.dataset.token} VERIFIED</small>
+        <h3 class="serif" style="font-size:17px;margin-top:2px">Customer: <span class="gold">${$('c-name').value.trim() || 'Guest customer'}</span></h3>
+        <small>Status: <b style="color:var(--warn)">${formalHold ? '30 minute counter hold' : '15 minute pass hold'}</b></small></div>
+      <button class="btn-ghost" id="btn-formal">Upgrade to 30 minute counter hold</button>
+    </div>
+    <div class="fgrid">${items.map(i => `
+      <div class="fitem"><img src="${i.img}" alt="">
+        <div class="t"><span class="gold" style="font-family:Consolas,monospace">${i.id}</span><b>${i.title}</b>
+          Net ${i.net} g • Gross ${i.gross} g<br><span class="loc2">Pull from: ${i.floor} → ${i.counter} → ${i.tray}</span></div>
+        <div class="fbtns"><button class="btn-gold" data-sold="${i.id}">Mark sold</button><button class="btn-ghost" data-ret="${i.id}">Return to tray</button></div>
+      </div>`).join('')}</div></div>`;
+}
+
+function verifyToken() {
+  const tok = $('tok').value.trim().toUpperCase(), box = $('floor-result');
+  if (!tok) { toast('Enter a pass token first.'); return; }
+  if (!activeToken || tok !== activeToken) {
+    box.dataset.token = '';
+    box.innerHTML = `<div class="box"><b style="color:var(--bad)">Pass not found.</b><p style="color:var(--mute);margin-top:4px">Check the token on the printed slip, or the pass may have expired. Issue a new pass on the ground floor.</p></div>`;
+    return;
+  }
+  box.dataset.token = tok; renderFloor();
+}
+
+/* =====================================================================
+   7. MANAGER DESK (all numbers calculated from the inventory)
+   ===================================================================== */
+const DEST = { [TP]: 'Madurai showroom', [BR]: 'Coimbatore showroom', [LD]: 'Trichy showroom', [CT]: 'Bengaluru showroom' };
+function renderManager() {
+  const live = inv.filter(i => i.status !== 'Sold');
+  const cnt = s => inv.filter(i => i.status === s).length;
+  const old = live.filter(i => i.days > 180);
+  $('kpis').innerHTML = [
+    ['Pieces in stock', live.length, 'excluding sold', '#fff'],
+    ['Shortlisted now', cnt('Shortlisted'), 'temporary hold', 'var(--gold)'],
+    ['On hold or with customer', cnt('On Hold') + cnt('With Customer'), 'at the counter', 'var(--bad)'],
+    ['Sold in this demo', cnt('Sold'), 'sent to billing', '#60a5fa'],
+    ['Transfer suggestions', old.length, 'older than 180 days', '#c084fc']
+  ].map(k => `<div class="kpi"><span>${k[0]}</span><b style="color:${k[3]}">${k[1]}</b><small>${k[2]}</small></div>`).join('');
+
+  const B = [['0 to 30 days', 0, 30, '#34d399'], ['31 to 90 days', 31, 90, '#2dd4bf'], ['91 to 180 days', 91, 180, '#fbbf24'], ['181 to 365 days', 181, 365, '#fb923c'], ['Over 365 days', 366, 1e9, '#fb7185']];
+  $('buckets').innerHTML = B.map(b => { const n = live.filter(i => i.days >= b[1] && i.days <= b[2]).length; return `<div class="bk"><span style="color:${b[3]}">${b[0]}</span><b>${n} pcs</b><div class="bar"><i style="width:${live.length ? n / live.length * 100 : 0}%;background:${b[3]}"></i></div></div>`; }).join('');
+
+  $('transfers').innerHTML = old.length ? old.map(i => {
+    const d = transferDecisions[i.id];
+    return `<div class="tr-row"><div><b>${i.title}</b> <span class="gold">(${i.net} g)</span><small>${i.days} days in stock at T. Nagar. Suggested move to ${DEST[i.style]}.</small></div>
+      <div>${d ? `<b style="color:${d === 'Approved' ? 'var(--ok)' : 'var(--bad)'}">${d}</b>` : `<button class="btn-gold" data-tr="${i.id}" data-d="Approved">Approve</button> <button class="btn-ghost" data-tr="${i.id}" data-d="Rejected">Reject</button>`}</div></div>`;
+  }).join('') : '<p style="color:var(--mute);margin-top:8px">No piece is older than 180 days.</p>';
+
+  $('ledger').innerHTML = inv.slice().sort((a, b) => a.id.localeCompare(b.id)).map(i => `<tr>
+    <td style="font-family:Consolas,monospace;color:var(--gold)">${i.id}</td><td>${i.title}</td><td>${i.purity}</td><td>${i.net} g</td>
+    <td>${i.floor}, ${i.counter}, ${i.tray}</td><td>${fmt(i.est)}</td><td>${i.days} d</td><td><span class="st ${i.status.replace(' ', '-')}">${i.status}</span></td></tr>`).join('');
+}
+
+/* =====================================================================
+   8. NAVIGATION, DEMO AND EVENTS
+   ===================================================================== */
+function setMode(mode) {
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.mode === mode));
+  const g = $('ground');
+  ['ground', 'view-floor', 'view-mgr'].forEach(id => $(id).classList.add('hide'));
+  g.classList.remove('only-staff', 'only-cust');
+  $('pane-staff').classList.remove('hide'); $('pane-cust').classList.remove('hide');
+  if (mode === 'dual') $('ground').classList.remove('hide');
+  if (mode === 'staff') { $('ground').classList.remove('hide'); g.classList.add('only-staff'); $('pane-cust').classList.add('hide'); }
+  if (mode === 'cust') { $('ground').classList.remove('hide'); g.classList.add('only-cust'); $('pane-staff').classList.add('hide'); }
+  if (mode === 'floor') { $('view-floor').classList.remove('hide'); renderFloor(); }
+  if (mode === 'mgr') { $('view-mgr').classList.remove('hide'); renderManager(); }
+}
+
+function runDemo() {
+  resetSession(true);
+  $('c-name').value = 'Smt. Ananya Krishnan';
+  $('f-cat').value = 'Earrings'; $('f-metal').value = '22K Gold'; $('f-wt').value = '5'; $('f-tol').value = '0.5'; $('f-bud').value = '0'; $('f-style').value = 'All';
+  setMode('dual'); sync();
+  filtered().filter(i => i.status === 'Available').slice(0, 3).forEach(i => toggle(i.id));
+  toast('Demo: 3 earrings shortlisted. Issuing the pass now.');
+  setTimeout(issuePass, 700);
+}
+
+function init() {
+  fillSelect('f-cat', CATS);
+  fillSelect('f-metal', METALS);
+  fillSelect('f-wt', WEIGHTS, w => w === 0 ? 'Any weight' : w.toFixed(1) + ' g');
+  fillSelect('f-tol', TOLS, t => '± ' + t + ' g');
+  fillSelect('f-bud', BUDGETS, b => b.l, (b, i) => i);
+  fillSelect('f-style', STYLES, s => s === 'All' ? 'All styles' : s);
+  $('f-wt').value = '5'; $('f-tol').value = '0.5';
+  $('rate-line').textContent = '22K ₹6,840 • 18K ₹5,600 • 24K ₹7,460';
+
+  ['f-cat','f-metal','f-wt','f-tol','f-bud','f-style'].forEach(id => $(id).addEventListener('change', sync));
+  $('c-name').addEventListener('input', sync);
+  $('tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setMode(b.dataset.mode); });
+  $('k-grid').addEventListener('click', e => { const b = e.target.closest('button[data-id]'); if (b && !b.disabled) toggle(b.dataset.id); });
+  $('btn-pass').addEventListener('click', issuePass);
+  $('btn-compare').addEventListener('click', openCompare);
+  $('btn-compare-staff').addEventListener('click', openCompare);
+  $('btn-reset').addEventListener('click', () => resetSession(false));
+  $('btn-demo').addEventListener('click', runDemo);
+  $('pass-x').addEventListener('click', () => $('pass-modal').classList.add('hide'));
+  $('cmp-x').addEventListener('click', () => $('cmp-modal').classList.add('hide'));
+  $('cmp-pass').addEventListener('click', () => { $('cmp-modal').classList.add('hide'); issuePass(); });
+  $('btn-print').addEventListener('click', () => window.print());
+  $('btn-walk').addEventListener('click', () => { $('pass-modal').classList.add('hide'); setMode('floor'); $('tok').value = activeToken; verifyToken(); toast('Customer reached Floor 3. Pass verified at Counter G-04.'); });
+  $('btn-verify').addEventListener('click', verifyToken);
+  $('btn-lasttok').addEventListener('click', () => { if (!activeToken) { toast('No pass issued yet. Issue one on the ground floor.'); return; } $('tok').value = activeToken; verifyToken(); });
+  $('tok').addEventListener('keydown', e => { if (e.key === 'Enter') verifyToken(); });
+
+  $('floor-result').addEventListener('click', e => {
+    const s = e.target.closest('[data-sold]'), r = e.target.closest('[data-ret]'), f = e.target.closest('#btn-formal');
+    if (s) { const it = inv.find(i => i.id === s.dataset.sold); it.status = 'Sold'; shortlist = shortlist.filter(x => x !== it.id); toast(it.id + ' marked sold and sent to billing.'); }
+    if (r) { const it = inv.find(i => i.id === r.dataset.ret); it.status = 'Available'; shortlist = shortlist.filter(x => x !== it.id); toast(it.id + ' returned to its tray.'); }
+    if (f) { shortlist.forEach(id => { inv.find(i => i.id === id).status = 'On Hold'; }); startTimer(1800, true); toast('Pieces held at the counter for 30 minutes.'); }
+    if (s || r) { if (!shortlist.length) stopTimer(); sync(); renderFloor(); }
+    if (f) { sync(); renderFloor(); }
+  });
+  $('transfers').addEventListener('click', e => { const b = e.target.closest('[data-tr]'); if (b) { transferDecisions[b.dataset.tr] = b.dataset.d; renderManager(); } });
+
+  sync();
+}
+PHOTOS_READY.then(msg => { init(); if (msg) toast(msg, 9000); });
+</script>
+</body>
+</html>
