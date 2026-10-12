@@ -265,7 +265,6 @@ td{padding:8px 9px;border-top:1px solid #232836;color:#C8D1DE}
     <button data-mode="mgr">Manager desk</button>
   </nav>
   <div class="hright">
-    <button class="btn-gold" id="btn-demo">Run 5 g earring demo</button>
     <span class="pill hide" id="timer-pill">Hold 15:00</span>
   </div>
 </header>
@@ -918,7 +917,6 @@ function init() {
   $('btn-compare').addEventListener('click', openCompare);
   $('btn-compare-staff').addEventListener('click', openCompare);
   $('btn-reset').addEventListener('click', () => resetSession(false));
-  $('btn-demo').addEventListener('click', runDemo);
   $('pass-x').addEventListener('click', () => $('pass-modal').classList.add('hide'));
   $('cmp-x').addEventListener('click', () => $('cmp-modal').classList.add('hide'));
   $('cmp-pass').addEventListener('click', () => { $('cmp-modal').classList.add('hide'); issuePass(); });
