@@ -89,25 +89,27 @@ select{max-height:36px}
 .hold{background:#FFF5E6;border:1px solid rgba(243,156,18,.5);color:#9C5D00;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:700}
 .k-note{background:#F6EEDB;border-bottom:1px solid #E3D3B5;color:#735F4D;font-size:11.5px;padding:7px 18px;display:flex;justify-content:space-between;gap:10px;flex-shrink:0}
 .k-note b{color:var(--bur)}
-.k-body{flex:1;overflow-y:auto;padding:16px 18px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
-.card{background:#fff;border:1px solid #E8DFC8;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between}
+.k-body{flex:1;overflow-y:auto;padding:22px 26px}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}
+@media (max-width:1100px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:600px){.grid{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid #E8DFC8;border-radius:16px;box-shadow:0 2px 8px rgba(103,17,38,.06);overflow:hidden;display:flex;flex-direction:column;justify-content:space-between}
 .card.sel{border-color:var(--gold);box-shadow:0 0 0 2px rgba(197,160,89,.4)}
 .card.held{opacity:.78}
 .ph{position:relative;aspect-ratio:1/1;background:#F5EFE6;overflow:hidden}
 .ph img{width:100%;height:100%;object-fit:cover;display:block}
 .ph .b1{position:absolute;top:8px;left:8px;background:var(--bur);color:var(--gold2);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px}
 .ph .b2{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.6);color:#fff;font:10px Consolas,monospace;padding:2px 6px;border-radius:4px}
-.cbody{padding:11px}
+.cbody{padding:14px}
 .cbody .col{font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
-.cbody h4{font:700 14px Georgia,serif;color:var(--char);margin:3px 0 9px;line-height:1.25}
+.cbody h4{font:700 14px Georgia,serif;color:var(--char);margin:4px 0 12px;line-height:1.3;min-height:2.6em}
 .wts{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .wts div{background:#FAF8F5;border:1px solid #EDE5D8;border-radius:8px;padding:6px}
 .wts span{display:block;font-size:9.5px;color:#857468;text-transform:uppercase;font-weight:700}
 .wts b{font:700 13px Consolas,monospace;color:var(--bur)}
 .wts div.g b{color:var(--char);font-weight:600}
 .loc{margin-top:8px;background:#F8EFE2;border-radius:8px;padding:6px 8px;font-size:11px;color:var(--bur);font-weight:600}
-.cbtn{margin:0 11px 11px}
+.cbtn{margin:0 14px 14px}
 .cbtn button{width:100%;padding:8px;border-radius:10px;font-weight:700;font-size:12px;border:0;color:#fff;background:linear-gradient(145deg,#671126,#430715)}
 .cbtn button:hover{filter:brightness(1.15)}
 .cbtn button.off{background:#FBEAEA;color:#9A2234;border:1px solid #EAA2AC}
@@ -506,7 +508,7 @@ const ROWS = [
   ['GRT-EAR-502','Earrings','drop','Floral Filigree Drops','22K Gold',4.85,0,LD,'GRT Daily Radiance','Floor 3','Counter G-04','Tray 05',12,8],
   ['GRT-EAR-503','Earrings','chandbali','Heritage Chandbali with Pearl Tassels','22K Gold',5.02,0.32,BR,'Kalyanam Legacy','Floor 3','Counter G-02','Tray 18',16,45],
   ['GRT-EAR-504','Earrings','hoop','Geometric Sui Dhaga Threaders','22K Gold',4.90,0,CT,'Celeste Urban','Floor 3','Counter G-04','Tray 02',11,12],
-  ['GRT-EAR-505','Earrings','drop','Lakshmi Kasu Embossed Drops','22K Gold',5.12,0,TP,'Auspicious Heritage','Floor 3','Counter G-04','Tray 14',13,95],
+  ['GRT-EAR-505','Earrings','drop','Lakshmi Kasu Embossed Drops','22K Gold',5.12,0,TP,'Auspicious Heritage','Floor 3','Counter G-04','Tray 14',13,95,'On Hold'],
   ['GRT-EAR-506','Earrings','jhumka','Peacock Motif Jhumki','22K Gold',4.60,0.05,TP,'GRT Oriana Bridal','Floor 3','Counter G-04','Tray 11',13,22],
   ['GRT-EAR-507','Earrings','hoop','Contemporary Hoop Bali','22K Gold',5.30,0,CT,'Celeste Urban','Floor 3','Counter G-04','Tray 03',11,14],
   ['GRT-EAR-508','Earrings','chandbali','Grand Bridal Chandbali','22K Gold',5.45,0.40,BR,'Kalyanam Legacy','Floor 3','Counter G-02','Tray 19',16,60],
@@ -566,7 +568,7 @@ const ROWS = [
   ['GRT-BNG-310','Bangles','kada','Heavy Bridal Kada','22K Gold',30.00,0.80,BR,'Kalyanam Legacy','Floor 2','Counter B-07','Tray 04',14,240],
   // ---- Rings ----
   ['GRT-RNG-401','Rings','band','Men\'s Plain Band Ring','22K Gold',6.20,0,CT,'GRT Gents','Floor 1','Counter R-02','Tray 01',12,30],
-  ['GRT-RNG-402','Rings','temple','Temple Lakshmi Ring','22K Gold',4.00,0.10,TP,'Auspicious Heritage','Floor 1','Counter R-02','Tray 03',13,70],
+  ['GRT-RNG-402','Rings','temple','Temple Lakshmi Ring','22K Gold',4.00,0.10,TP,'Auspicious Heritage','Floor 1','Counter R-02','Tray 03',13,70,'On Hold'],
   ['GRT-RNG-403','Rings','solitaire','Solitaire Diamond Engagement Ring','18K Diamond',3.60,0.45,CT,'Celeste Diamonds','Floor 1','Counter D-03','Tray 04',18,48],
   ['GRT-RNG-404','Rings','band','Platinum 950 Couple Band','Platinum',8.00,0,CT,'GRT Platinum','Floor 1','Counter P-01','Tray 01',15,18],
   ['GRT-RNG-405','Rings','cluster','Cocktail Cluster Diamond Ring','18K Diamond',4.20,0.90,BR,'Celeste Diamonds','Floor 1','Counter D-01','Tray 06',18,120],
