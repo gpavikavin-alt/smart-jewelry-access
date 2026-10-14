@@ -108,6 +108,9 @@ select{max-height:36px}
 .wts span{display:block;font-size:9.5px;color:#857468;text-transform:uppercase;font-weight:700}
 .wts b{font:700 13px Consolas,monospace;color:var(--bur)}
 .wts div.g b{color:var(--char);font-weight:600}
+.price{margin-top:8px;display:flex;justify-content:space-between;align-items:baseline;background:#FFF8E8;border:1px solid #EFD9A6;border-radius:8px;padding:6px 8px}
+.price span{font-size:9.5px;color:#857468;text-transform:uppercase;font-weight:700}
+.price b{font:700 15px Georgia,serif;color:var(--bur)}
 .loc{margin-top:8px;background:#F8EFE2;border-radius:8px;padding:6px 8px;font-size:11px;color:var(--bur);font-weight:600}
 .cbtn{margin:0 14px 14px}
 .cbtn button{width:100%;padding:8px;border-radius:10px;font-weight:700;font-size:12px;border:0;color:#fff;background:linear-gradient(145deg,#671126,#430715)}
@@ -294,12 +297,20 @@ td{padding:8px 9px;border-top:1px solid #232836;color:#C8D1DE}
             <input id="c-phone" value="+91 98401 23456">
           </div>
           <div>
+            <label for="f-mat">Looking for</label>
+            <select id="f-mat"></select>
+          </div>
+          <div id="cat-wrap">
             <label for="f-cat">Category</label>
             <select id="f-cat"></select>
           </div>
           <div>
-            <label for="f-metal">Metal and purity</label>
+            <label for="f-metal">Purity</label>
             <select id="f-metal"></select>
+          </div>
+          <div>
+            <label for="f-style">Style</label>
+            <select id="f-style"></select>
           </div>
           <div>
             <label for="f-wt">Target weight (g)</label>
@@ -309,18 +320,14 @@ td{padding:8px 9px;border-top:1px solid #232836;color:#C8D1DE}
             <label for="f-tol">Weight tolerance (± g)</label>
             <select id="f-tol"></select>
           </div>
-          <div>
-            <label for="f-bud">Internal budget range (staff only)</label>
+          <div class="full">
+            <label for="f-bud">Budget range</label>
             <select id="f-bud"></select>
-          </div>
-          <div>
-            <label for="f-style">Style</label>
-            <select id="f-style"></select>
           </div>
           <div class="info full">
             <div><span>Matching designs in this branch</span><b class="gold" id="match-count">0 designs</b></div>
             <div><span>Demo rates used (per g)</span><b id="rate-line"></b></div>
-            <div><span>Price visibility</span><b style="color:var(--ok)">Staff only. Hidden on customer display</b></div>
+            <div><span>Prices</span><b style="color:var(--ok)">Estimates shown on both screens</b></div>
           </div>
         </div>
 
@@ -355,7 +362,7 @@ td{padding:8px 9px;border-top:1px solid #232836;color:#C8D1DE}
         </div>
       </div>
       <div class="k-note">
-        <span>Final price, gold rate and billing are provided at the counter. Pieces stay at their counter until you arrive.</span>
+        <span>Prices shown are estimates (making charge and GST included). Final price, rate and billing are at the counter. Pieces stay at their counter until you arrive.</span>
         <b>Select up to 5</b>
       </div>
       <div class="k-body"><div class="grid" id="k-grid"></div></div>
@@ -497,18 +504,17 @@ td{padding:8px 9px;border-top:1px solid #232836;color:#C8D1DE}
    Row: [id, category, artwork, title, metal, netWt, stoneWt, style,
          collection, floor, counter, tray, makingCharge%, daysInStock, status]
    ===================================================================== */
-const RATE = { "22K Gold": 6840, "18K Diamond": 5600, "24K Pure": 7460, "Platinum": 3300 };
-const STONE_RATE = { "22K Gold": 3000, "18K Diamond": 45000, "24K Pure": 0, "Platinum": 45000 };
-const PURITY = { "22K Gold": "22K", "18K Diamond": "18K", "24K Pure": "24K", "Platinum": "950" };
+const RATE = { "22K Gold": 6840, "18K Diamond": 5600, "24K Pure": 7460, "Silver": 120 };   // demo rates per gram
+const STONE_RATE = { "22K Gold": 3000, "18K Diamond": 45000, "24K Pure": 0, "Silver": 500 };
+const PURITY = { "22K Gold": "22K", "18K Diamond": "18K", "24K Pure": "24K", "Silver": "925" };
 const TP = 'Temple / Antique', BR = 'Bridal', LD = 'Lightweight Daily', CT = 'Contemporary';
 
 const ROWS = [
-  // ---- Earrings, 22K: twelve pieces between 4.5 g and 5.5 g ----
   ['GRT-EAR-501','Earrings','jhumka','Antique Temple Peacock Jhumka','22K Gold',4.95,0.23,TP,'GRT Oriana Bridal','Floor 3','Counter G-04','Tray 12',14,18],
   ['GRT-EAR-502','Earrings','drop','Floral Filigree Drops','22K Gold',4.85,0,LD,'GRT Daily Radiance','Floor 3','Counter G-04','Tray 05',12,8],
   ['GRT-EAR-503','Earrings','chandbali','Heritage Chandbali with Pearl Tassels','22K Gold',5.02,0.32,BR,'Kalyanam Legacy','Floor 3','Counter G-02','Tray 18',16,45],
   ['GRT-EAR-504','Earrings','hoop','Geometric Sui Dhaga Threaders','22K Gold',4.90,0,CT,'Celeste Urban','Floor 3','Counter G-04','Tray 02',11,12],
-  ['GRT-EAR-505','Earrings','drop','Lakshmi Kasu Embossed Drops','22K Gold',5.12,0,TP,'Auspicious Heritage','Floor 3','Counter G-04','Tray 14',13,95,'On Hold'],
+  ['GRT-EAR-505','Earrings','drop','Lakshmi Kasu Embossed Drops','22K Gold',5.12,0,TP,'Auspicious Heritage','Floor 3','Counter G-04','Tray 14',13,95],
   ['GRT-EAR-506','Earrings','jhumka','Peacock Motif Jhumki','22K Gold',4.60,0.05,TP,'GRT Oriana Bridal','Floor 3','Counter G-04','Tray 11',13,22],
   ['GRT-EAR-507','Earrings','hoop','Contemporary Hoop Bali','22K Gold',5.30,0,CT,'Celeste Urban','Floor 3','Counter G-04','Tray 03',11,14],
   ['GRT-EAR-508','Earrings','chandbali','Grand Bridal Chandbali','22K Gold',5.45,0.40,BR,'Kalyanam Legacy','Floor 3','Counter G-02','Tray 19',16,60],
@@ -554,7 +560,6 @@ const ROWS = [
   ['GRT-CHN-209','Chains','figaro','24K Pure Gold Figaro Chain','24K Pure',20.00,0,CT,'GRT Pure Gold','Floor 2','Counter C-03','Tray 02',8,48],
   ['GRT-CHN-210','Chains','curb','Heavy Curb Chain','22K Gold',25.00,0,CT,'GRT Gents','Floor 2','Counter C-01','Tray 06',10,120],
   ['GRT-CHN-211','Chains','rope','Light Rope Chain','22K Gold',3.00,0,LD,'GRT Daily Radiance','Floor 2','Counter C-02','Tray 04',10,7],
-  ['GRT-CHN-212','Chains','curb','Platinum Curb Chain','Platinum',12.00,0,CT,'GRT Platinum','Floor 1','Counter P-01','Tray 02',15,22],
   // ---- Bangles ----
   ['GRT-BNG-301','Bangles','kada','Antique Elephant Head Gokhru Kada','22K Gold',24.20,0,TP,'Vintage Sovereign','Floor 2','Counter B-07','Tray 08',14,190],
   ['GRT-BNG-302','Bangles','plain','Daily Wear Plain Bangle','22K Gold',8.00,0,LD,'GRT Daily Radiance','Floor 2','Counter B-03','Tray 02',11,10],
@@ -568,24 +573,123 @@ const ROWS = [
   ['GRT-BNG-310','Bangles','kada','Heavy Bridal Kada','22K Gold',30.00,0.80,BR,'Kalyanam Legacy','Floor 2','Counter B-07','Tray 04',14,240],
   // ---- Rings ----
   ['GRT-RNG-401','Rings','band','Men\'s Plain Band Ring','22K Gold',6.20,0,CT,'GRT Gents','Floor 1','Counter R-02','Tray 01',12,30],
-  ['GRT-RNG-402','Rings','temple','Temple Lakshmi Ring','22K Gold',4.00,0.10,TP,'Auspicious Heritage','Floor 1','Counter R-02','Tray 03',13,70,'On Hold'],
+  ['GRT-RNG-402','Rings','temple','Temple Lakshmi Ring','22K Gold',4.00,0.10,TP,'Auspicious Heritage','Floor 1','Counter R-02','Tray 03',13,70],
   ['GRT-RNG-403','Rings','solitaire','Solitaire Diamond Engagement Ring','18K Diamond',3.60,0.45,CT,'Celeste Diamonds','Floor 1','Counter D-03','Tray 04',18,48],
-  ['GRT-RNG-404','Rings','band','Platinum 950 Couple Band','Platinum',8.00,0,CT,'GRT Platinum','Floor 1','Counter P-01','Tray 01',15,18],
   ['GRT-RNG-405','Rings','cluster','Cocktail Cluster Diamond Ring','18K Diamond',4.20,0.90,BR,'Celeste Diamonds','Floor 1','Counter D-01','Tray 06',18,120],
   ['GRT-RNG-406','Rings','signet','Signet Ring for Men','22K Gold',7.50,0,CT,'GRT Gents','Floor 1','Counter R-02','Tray 02',12,52],
   ['GRT-RNG-407','Rings','temple','Peacock Temple Ring','22K Gold',5.00,0.10,TP,'Auspicious Heritage','Floor 1','Counter R-02','Tray 05',13,26],
   ['GRT-RNG-408','Rings','cluster','Ruby Cluster Ring','22K Gold',4.50,0.60,BR,'Kalyanam Legacy','Floor 1','Counter R-02','Tray 07',14,88],
   ['GRT-RNG-409','Rings','band','Slim Daily Band','22K Gold',2.50,0,LD,'GRT Daily Radiance','Floor 1','Counter R-02','Tray 04',12,9],
-  ['GRT-RNG-410','Rings','solitaire','Platinum Solitaire Ring','Platinum',5.00,0.40,CT,'GRT Platinum','Floor 1','Counter P-01','Tray 03',15,33]
+  ['GRT-SER-901','Earrings','jhumka','Oxidised Silver Jhumka','Silver',8.2,0,TP,'Silver Heritage','Floor 1','Counter S-01','Tray 02',16,35],
+  ['GRT-SER-902','Earrings','chandbali','Silver Chandbali','Silver',10.5,0,BR,'Silver Bridal','Floor 1','Counter S-01','Tray 04',16,8],
+  ['GRT-SER-903','Earrings','drop','Silver Teardrop Earrings','Silver',4.6,0,LD,'Silver Daily','Floor 1','Counter S-01','Tray 06',16,64],
+  ['GRT-SER-904','Earrings','hoop','Silver Hoop Bali','Silver',6,0,CT,'Silver Urban','Floor 1','Counter S-01','Tray 08',16,150],
+  ['GRT-SER-905','Earrings','stud','Silver Floral Studs','Silver',3.2,0,LD,'Silver Daily','Floor 1','Counter S-01','Tray 01',16,22],
+  ['GRT-SER-906','Earrings','jhumka','Mini Silver Jhumki','Silver',5.4,0,TP,'Silver Heritage','Floor 1','Counter S-01','Tray 03',16,95],
+  ['GRT-SER-907','Earrings','chandbali','Pearl Silver Chandbali','Silver',9,0.2,BR,'Silver Bridal','Floor 1','Counter S-01','Tray 05',16,19],
+  ['GRT-SER-908','Earrings','drop','Leaf Drop Earrings','Silver',5,0,LD,'Silver Daily','Floor 1','Counter S-01','Tray 07',16,205],
+  ['GRT-SER-909','Earrings','hoop','Twisted Silver Hoops','Silver',7.5,0,CT,'Silver Urban','Floor 1','Counter S-01','Tray 09',16,41],
+  ['GRT-SER-910','Earrings','stud','Peacock Silver Studs','Silver',4,0,LD,'Silver Daily','Floor 1','Counter S-01','Tray 02',16,28],
+  ['GRT-SER-911','Earrings','drop','Beaded Silver Drops','Silver',6.4,0,LD,'Silver Daily','Floor 1','Counter S-01','Tray 04',16,77],
+  ['GRT-SER-912','Earrings','jhumka','Antique Silver Jhumka','Silver',12,0,TP,'Silver Heritage','Floor 1','Counter S-01','Tray 06',16,14],
+  ['GRT-SNK-921','Necklaces','choker','Silver Temple Choker','Silver',38,0,TP,'Silver Heritage','Floor 1','Counter S-02','Tray 03',15,64],
+  ['GRT-SNK-922','Necklaces','haram','Silver Coin Haram','Silver',85,0,TP,'Silver Heritage','Floor 1','Counter S-02','Tray 05',15,150],
+  ['GRT-SNK-923','Necklaces','mango','Silver Mango Mala','Silver',60,0,TP,'Silver Heritage','Floor 1','Counter S-02','Tray 07',15,22],
+  ['GRT-SNK-924','Necklaces','layered','Layered Silver Necklace','Silver',28,0,CT,'Silver Urban','Floor 1','Counter S-02','Tray 09',15,95],
+  ['GRT-SNK-925','Necklaces','pendant','Silver Lotus Pendant Necklace','Silver',18,0,LD,'Silver Daily','Floor 1','Counter S-02','Tray 02',15,19],
+  ['GRT-SNK-926','Necklaces','choker','Oxidised Collar Necklace','Silver',42,0,CT,'Silver Urban','Floor 1','Counter S-02','Tray 04',15,205],
+  ['GRT-SNK-927','Necklaces','pendant','Silver Peacock Pendant Set','Silver',22,0,LD,'Silver Daily','Floor 1','Counter S-02','Tray 06',15,41],
+  ['GRT-SNK-928','Necklaces','layered','Slim Layered Silver Necklace','Silver',20,0,CT,'Silver Urban','Floor 1','Counter S-02','Tray 08',15,28],
+  ['GRT-SNK-929','Necklaces','haram','Bridal Silver Haram','Silver',95,0,BR,'Silver Bridal','Floor 1','Counter S-02','Tray 01',15,77],
+  ['GRT-SNK-930','Necklaces','mango','Short Mango Necklace','Silver',45,0,TP,'Silver Heritage','Floor 1','Counter S-02','Tray 03',15,14],
+  ['GRT-SNK-931','Necklaces','choker','Plain Silver Choker','Silver',30,0,CT,'Silver Urban','Floor 1','Counter S-02','Tray 05',15,120],
+  ['GRT-SNK-932','Necklaces','pendant','Daily Silver Pendant Necklace','Silver',12,0,LD,'Silver Daily','Floor 1','Counter S-02','Tray 07',15,52],
+  ['GRT-SCH-941','Chains','rope','Silver Rope Chain, 20 inch','Silver',14,0,LD,'Silver Daily','Floor 1','Counter S-03','Tray 04',12,22],
+  ['GRT-SCH-942','Chains','curb','Silver Curb Chain for Men','Silver',30,0,CT,'Silver Urban','Floor 1','Counter S-03','Tray 06',12,95],
+  ['GRT-SCH-943','Chains','box','Silver Box Chain','Silver',12,0,LD,'Silver Daily','Floor 1','Counter S-03','Tray 08',12,19],
+  ['GRT-SCH-944','Chains','figaro','Silver Figaro Chain','Silver',22,0,CT,'Silver Urban','Floor 1','Counter S-03','Tray 01',12,205],
+  ['GRT-SCH-945','Chains','singapore','Silver Singapore Chain','Silver',10,0,LD,'Silver Daily','Floor 1','Counter S-03','Tray 03',12,41],
+  ['GRT-SCH-946','Chains','curb','Slim Silver Curb Chain','Silver',8,0,LD,'Silver Daily','Floor 1','Counter S-03','Tray 05',12,28],
+  ['GRT-SCH-947','Chains','rope','Heavy Silver Rope Chain','Silver',40,0,CT,'Silver Urban','Floor 1','Counter S-03','Tray 07',12,77],
+  ['GRT-SCH-948','Chains','figaro','Light Silver Figaro Chain','Silver',9.5,0,LD,'Silver Daily','Floor 1','Counter S-03','Tray 09',12,14],
+  ['GRT-SCH-949','Chains','box','Fine Silver Box Chain','Silver',6,0,LD,'Silver Daily','Floor 1','Counter S-03','Tray 02',12,120],
+  ['GRT-SCH-950','Chains','singapore','Long Silver Singapore Chain','Silver',18,0,LD,'Silver Daily','Floor 1','Counter S-03','Tray 04',12,52],
+  ['GRT-SCH-951','Chains','curb','Heavy Silver Curb Chain','Silver',55,0,CT,'Silver Urban','Floor 1','Counter S-03','Tray 06',12,9],
+  ['GRT-SCH-952','Chains','rope','Twist Silver Chain, 24 inch','Silver',20,0,LD,'Silver Daily','Floor 1','Counter S-03','Tray 08',12,185],
+  ['GRT-SBG-961','Bangles','plain','Silver Plain Bangle','Silver',20,0,LD,'Silver Daily','Floor 1','Counter S-04','Tray 05',14,19],
+  ['GRT-SBG-962','Bangles','kada','Antique Silver Kada','Silver',55,0,TP,'Silver Heritage','Floor 1','Counter S-04','Tray 07',14,205],
+  ['GRT-SBG-963','Bangles','set','Silver Bangle Set, 4 pcs','Silver',70,0,BR,'Silver Bridal','Floor 1','Counter S-04','Tray 09',14,41],
+  ['GRT-SBG-964','Bangles','bracelet','Silver Link Bracelet','Silver',18,0,CT,'Silver Urban','Floor 1','Counter S-04','Tray 02',14,28],
+  ['GRT-SBG-965','Bangles','stone','Silver Stone Bangle','Silver',28,0.4,BR,'Silver Bridal','Floor 1','Counter S-04','Tray 04',14,77],
+  ['GRT-SBG-966','Bangles','plain','Light Silver Bangle','Silver',12,0,LD,'Silver Daily','Floor 1','Counter S-04','Tray 06',14,14],
+  ['GRT-SBG-967','Bangles','kada','Oxidised Silver Kada','Silver',45,0,TP,'Silver Heritage','Floor 1','Counter S-04','Tray 08',14,120],
+  ['GRT-SBG-968','Bangles','set','Daily Silver Bangle Set, 2 pcs','Silver',36,0,LD,'Silver Daily','Floor 1','Counter S-04','Tray 01',14,52],
+  ['GRT-SBG-969','Bangles','bracelet','Charm Silver Bracelet','Silver',14,0,CT,'Silver Urban','Floor 1','Counter S-04','Tray 03',14,9],
+  ['GRT-SBG-970','Bangles','stone','Pearl Silver Bangle','Silver',25,0.3,BR,'Silver Bridal','Floor 1','Counter S-04','Tray 05',14,185],
+  ['GRT-SBG-971','Bangles','plain','Textured Silver Bangle','Silver',24,0,CT,'Silver Urban','Floor 1','Counter S-04','Tray 07',14,30],
+  ['GRT-SBG-972','Bangles','kada','Heavy Silver Kada','Silver',65,0,TP,'Silver Heritage','Floor 1','Counter S-04','Tray 09',14,12],
+  ['GRT-SRG-981','Rings','band','Silver Plain Band','Silver',4,0,CT,'Silver Urban','Floor 1','Counter S-05','Tray 06',15,41],
+  ['GRT-SRG-982','Rings','temple','Silver Lakshmi Ring','Silver',5.5,0,TP,'Silver Heritage','Floor 1','Counter S-05','Tray 08',15,28],
+  ['GRT-SRG-983','Rings','solitaire','Silver Solitaire Ring','Silver',3.8,0,CT,'Silver Urban','Floor 1','Counter S-05','Tray 01',15,77],
+  ['GRT-SRG-984','Rings','cluster','Silver Flower Cluster Ring','Silver',4.8,0.3,BR,'Silver Bridal','Floor 1','Counter S-05','Tray 03',15,14],
+  ['GRT-SRG-985','Rings','signet','Silver Signet Ring','Silver',8,0,CT,'Silver Urban','Floor 1','Counter S-05','Tray 05',15,120],
+  ['GRT-SRG-986','Rings','band','Twisted Silver Band','Silver',3.5,0,LD,'Silver Daily','Floor 1','Counter S-05','Tray 07',15,52],
+  ['GRT-SRG-987','Rings','temple','Silver Peacock Ring','Silver',6.2,0,TP,'Silver Heritage','Floor 1','Counter S-05','Tray 09',15,9],
+  ['GRT-SRG-988','Rings','cluster','Silver Stone Cluster Ring','Silver',5.5,0.4,BR,'Silver Bridal','Floor 1','Counter S-05','Tray 02',15,185],
+  ['GRT-SRG-989','Rings','signet','Initial Silver Signet','Silver',7,0,CT,'Silver Urban','Floor 1','Counter S-05','Tray 04',15,30],
+  ['GRT-SRG-990','Rings','band','Silver Couple Band','Silver',5,0,CT,'Silver Urban','Floor 1','Counter S-05','Tray 06',15,12],
+  ['GRT-SRG-991','Rings','solitaire','Silver CZ Ring','Silver',3,0.2,LD,'Silver Daily','Floor 1','Counter S-05','Tray 08',15,35],
+  ['GRT-SRG-992','Rings','temple','Silver Antique Ring','Silver',6.8,0,TP,'Silver Heritage','Floor 1','Counter S-05','Tray 01',15,8],
+  ['GRT-SCN-801','Coins','lakshmi','Lakshmi Silver Coin, 5 g','Silver',5,0,LD,'GRT Silver Coins','Floor 1','Counter S-06','Tray 01',6,64],
+  ['GRT-SCN-802','Coins','lakshmi','Lakshmi Silver Coin, 10 g','Silver',10,0,TP,'GRT Silver Coins','Floor 1','Counter S-06','Tray 02',6,205],
+  ['GRT-SCN-803','Coins','lakshmi','Lakshmi Silver Coin, 20 g','Silver',20,0,TP,'GRT Silver Coins','Floor 1','Counter S-06','Tray 03',6,120],
+  ['GRT-SCN-804','Coins','lakshmi','Lakshmi Silver Coin, 50 g','Silver',50,0,TP,'GRT Silver Coins','Floor 1','Counter S-06','Tray 04',6,12],
+  ['GRT-SCN-805','Coins','ganesha','Ganesha Silver Coin, 10 g','Silver',10,0,TP,'GRT Silver Coins','Floor 1','Counter S-06','Tray 05',6,22],
+  ['GRT-SCN-806','Coins','ganesha','Ganesha Silver Coin, 20 g','Silver',20,0,TP,'GRT Silver Coins','Floor 1','Counter S-06','Tray 06',6,28],
+  ['GRT-SCN-807','Coins','ganesha','Ganesha Silver Coin, 50 g','Silver',50,0,TP,'GRT Silver Coins','Floor 1','Counter S-06','Tray 01',6,9],
+  ['GRT-SCN-808','Coins','lakshmiganesha','Lakshmi Ganesha Silver Coin, 20 g','Silver',20,0,TP,'GRT Silver Coins','Floor 1','Counter S-06','Tray 02',6,8],
+  ['GRT-SCN-809','Coins','lakshmiganesha','Lakshmi Ganesha Silver Coin, 100 g','Silver',100,0,TP,'GRT Silver Coins','Floor 1','Counter S-06','Tray 03',6,19],
+  ['GRT-SCN-810','Coins','venkateswara','Venkateswara Silver Coin, 20 g','Silver',20,0,TP,'GRT Silver Coins','Floor 1','Counter S-06','Tray 04',6,14],
+  ['GRT-SCN-811','Coins','om','Om Silver Coin, 10 g','Silver',10,0,TP,'GRT Silver Coins','Floor 1','Counter S-06','Tray 05',6,30],
+  ['GRT-SCN-812','Coins','peacock','Peacock Silver Coin, 100 g','Silver',100,0,TP,'GRT Silver Coins','Floor 1','Counter S-06','Tray 06',6,150],
+  ['GRT-GCN-701','Coins','lakshmi','Lakshmi Gold Coin, 1 g','24K Pure',1,0,LD,'GRT Pure Gold Coins','Floor 1','Counter K-01','Tray 01',4,64],
+  ['GRT-GCN-702','Coins','lakshmi','Lakshmi Gold Coin, 2 g','24K Pure',2,0,LD,'GRT Pure Gold Coins','Floor 1','Counter K-01','Tray 02',4,205],
+  ['GRT-GCN-703','Coins','lakshmi','Lakshmi Gold Coin, 4 g','24K Pure',4,0,LD,'GRT Pure Gold Coins','Floor 1','Counter K-01','Tray 03',4,120],
+  ['GRT-GCN-704','Coins','lakshmi','Lakshmi Gold Coin, 8 g','24K Pure',8,0,TP,'GRT Pure Gold Coins','Floor 1','Counter K-01','Tray 04',4,12],
+  ['GRT-GCN-705','Coins','ganesha','Ganesha Gold Coin, 2 g','24K Pure',2,0,LD,'GRT Pure Gold Coins','Floor 1','Counter K-01','Tray 05',4,22],
+  ['GRT-GCN-706','Coins','ganesha','Ganesha Gold Coin, 5 g','24K Pure',5,0,LD,'GRT Pure Gold Coins','Floor 1','Counter K-01','Tray 06',4,28],
+  ['GRT-GCN-707','Coins','ganesha','Ganesha Gold Coin, 10 g','24K Pure',10,0,TP,'GRT Pure Gold Coins','Floor 1','Counter K-01','Tray 01',4,9],
+  ['GRT-GCN-708','Coins','lakshmiganesha','Lakshmi Ganesha Gold Coin, 4 g','24K Pure',4,0,LD,'GRT Pure Gold Coins','Floor 1','Counter K-01','Tray 02',4,8],
+  ['GRT-GCN-709','Coins','lakshmiganesha','Lakshmi Ganesha Gold Coin, 20 g','24K Pure',20,0,TP,'GRT Pure Gold Coins','Floor 1','Counter K-01','Tray 03',4,19],
+  ['GRT-GCN-710','Coins','venkateswara','Venkateswara Gold Coin, 8 g','24K Pure',8,0,TP,'GRT Pure Gold Coins','Floor 1','Counter K-01','Tray 04',4,14],
+  ['GRT-GCN-711','Coins','om','Om Gold Coin, 5 g','24K Pure',5,0,LD,'GRT Pure Gold Coins','Floor 1','Counter K-01','Tray 05',4,30],
+  ['GRT-GCN-712','Coins','peacock','Peacock Gold Coin, 50 g','24K Pure',50,0,TP,'GRT Pure Gold Coins','Floor 1','Counter K-01','Tray 06',4,150],
+  ['GRT-DIA-621','Earrings','hoop','Diamond Hoop Earrings','18K Diamond',4.5,0.45,CT,'Celeste Diamonds','Floor 1','Counter D-03','Tray 07',18,24],
+  ['GRT-DIA-622','Necklaces','pendant','Diamond Heart Pendant','18K Diamond',3.2,0.3,LD,'Celeste Diamonds','Floor 1','Counter D-03','Tray 08',18,16],
+  ['GRT-DIA-623','Bangles','bracelet','Diamond Tennis Bracelet','18K Diamond',12,1.4,BR,'Celeste Diamonds','Floor 1','Counter D-01','Tray 09',18,60],
+  ['GRT-DIA-624','Rings','halo','Diamond Halo Ring','18K Diamond',3.9,0.5,BR,'Celeste Diamonds','Floor 1','Counter D-01','Tray 10',18,38],
+  ['GRT-DIA-625','Earrings','stud','Diamond Stud Earrings','18K Diamond',2.8,0.3,LD,'Celeste Diamonds','Floor 1','Counter D-03','Tray 11',18,11],
+  // ---- gold top-ups so every gold category has 12 designs ----
+  ['GRT-NCK-812','Necklaces','layered','Triple Layer Chain Necklace','22K Gold',14.5,0,CT,'Celeste Urban','Floor 2','Counter N-02','Tray 09',12,35],
+  ['GRT-CHN-213','Chains','figaro','Light Figaro Chain','22K Gold',6.5,0,LD,'GRT Daily Radiance','Floor 2','Counter C-02','Tray 05',10,11],
+  ['GRT-BNG-311','Bangles','plain','Textured Daily Bangle','22K Gold',10.5,0,LD,'GRT Daily Radiance','Floor 2','Counter B-03','Tray 04',11,19],
+  ['GRT-BNG-312','Bangles','stone','Pearl Stone Bangle','22K Gold',18,0.8,BR,'Kalyanam Legacy','Floor 2','Counter B-03','Tray 07',15,46],
+  ['GRT-RNG-411','Rings','band','Mens Couple Band','22K Gold',5.8,0,CT,'GRT Gents','Floor 1','Counter R-02','Tray 08',12,10],
+  ['GRT-RNG-412','Rings','temple','Lotus Temple Ring','22K Gold',4.4,0.1,TP,'Auspicious Heritage','Floor 1','Counter R-02','Tray 09',12,17],
+  ['GRT-RNG-413','Rings','cluster','Flower Cluster Ring','22K Gold',3.9,0.5,BR,'Kalyanam Legacy','Floor 1','Counter R-02','Tray 10',12,24],
+  ['GRT-RNG-414','Rings','signet','Initial Signet Ring','22K Gold',6.8,0,CT,'GRT Gents','Floor 1','Counter R-02','Tray 11',12,31],
+  ['GRT-RNG-415','Rings','band','Twisted Band Ring','22K Gold',3.2,0,LD,'GRT Daily Radiance','Floor 1','Counter R-02','Tray 12',12,38],
+  ['GRT-RNG-416','Rings','solitaire','Stone Solitaire Ring','22K Gold',3,0.3,CT,'Celeste Urban','Floor 1','Counter R-02','Tray 13',12,45]
 ];
 
 function build(r) {
   const [id, cat, art, title, metal, net, stone, style, coll, floor, counter, tray, mc, days, status] = r;
   const est = Math.round(((net * RATE[metal] * (1 + mc/100)) + stone * STONE_RATE[metal]) * 1.03 / 100) * 100;
   return {
-    id, category: cat, title, metal, purity: PURITY[metal], net, stone,
+    id, category: metal === '18K Diamond' ? 'Diamond jewellery' : cat, title, metal, purity: (metal === 'Silver' && cat === 'Coins') ? '999' : PURITY[metal], net, stone,
     gross: +(net + stone).toFixed(2), style, collection: coll, floor, counter, tray,
     mc, days, status: status || 'Available', est,
+    material: metal.indexOf('Silver') >= 0 ? 'Silver' : metal === '18K Diamond' ? 'Diamond' : 'Gold', art,
     code: 'D-' + id.split('-')[1][0] + id.split('-')[2],
     img: ''
   };
@@ -593,46 +697,69 @@ function build(r) {
 const inv = ROWS.map(build);
 
 /* ===== YOUR PHOTOS =====
-   Put the pictures in an "images" folder next to this file, or directly in the same folder as this file.
-   Earrings use images/<item id>.png (for example GRT-EAR-501.png).
-   Every other piece uses images/<category>_<style>.png (for example rings_solitaire.png).
-   png, jpg, jpeg and webp all work. A piece with no photo is hidden automatically. */
-const ROW_ART = Object.fromEntries(ROWS.map(r => [r[0], r[1].toLowerCase() + '_' + r[2]]));
-const PHOTO_EXTS = ['png', 'jpg', 'jpeg', 'webp'];
-const PLACEHOLDER = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600"><rect width="600" height="600" fill="#F5EFE6"/><text x="300" y="295" text-anchor="middle" font-family="Georgia,serif" font-size="32" fill="#671126">Photo not found</text><text x="300" y="340" text-anchor="middle" font-family="Georgia,serif" font-size="20" fill="#857468">Keep the images folder next to this file</text></svg>');
+   Put the pictures in an "images" folder next to this file, or in the same folder as this file.
+   Each piece looks for: 1) images/<item id>.png   2) a shared photo for its style (see the checklist file).
+   png, jpg, jpeg and webp all work. A piece with no photo shows a "Photo coming soon" tile. */
+const PHOTO_EXTS = ['jpeg', 'jpg', 'png', 'webp'];
+/* A few of your photo files still carry extra characters that came from Excel.
+   Listing them here lets the page find them. If you rename the file to the clean piece name, this line is no longer needed. */
+const PHOTO_ALIAS = {
+  'GRT-SER-902': 'Silver Chandbali+',
+  'GRT-SER-904': 'Silver Hoop Bali+C41',
+  'GRT-SNK-923': 'Silver Mango Mala+C52',
+  'GRT-SNK-931': "Plain Silver Choker''",
+  'GRT-SCN-811': 'Om Silver Coin, 10 g+C36'
+};
+function styleBase(i) {
+  const slug = i.material === 'Diamond' ? 'diamond' : i.category.toLowerCase();
+  return (i.material === 'Silver' ? 'silver_' : '') + slug + '_' + i.art;
+}
+const PLACEHOLDER = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600"><rect width="600" height="600" fill="#F5EFE6"/><circle cx="300" cy="250" r="70" fill="none" stroke="#C5A059" stroke-width="10"/><circle cx="300" cy="250" r="26" fill="#C5A059"/><text x="300" y="400" text-anchor="middle" font-family="Georgia,serif" font-size="32" fill="#671126">Photo coming soon</text></svg>');
 const probeCache = {};
 function probe(url) {
   if (!(url in probeCache)) probeCache[url] = new Promise(res => { const im = new Image(); im.onload = () => res(url); im.onerror = () => res(null); im.src = url; });
   return probeCache[url];
 }
 function findPhoto(bases) {
+  // tries .jpeg first (your files), then the other types; "images/" folder first, then the page's own folder
   const urls = [];
-  // looks inside the "images" folder first, then in the same folder as this page
-  bases.forEach(b => ['images/', ''].forEach(d => PHOTO_EXTS.forEach(x => urls.push(d + b + '.' + x))));
+  PHOTO_EXTS.forEach(x => bases.forEach(b => ['images/', ''].forEach(d => urls.push(d + b + '.' + x))));
   return urls.reduce((p, u) => p.then(found => found || probe(u)), Promise.resolve(null));
 }
 const PHOTOS_READY = Promise.all(inv.map(i => {
-  const art = ROW_ART[i.id], bases = [i.id, art];
-  if (art === 'necklaces_layered') bases.push('necklaces_layered.');   // tolerates a file named "necklaces_layered..png"
-  return findPhoto(bases).then(url => { i.img = url || ''; });
+  // 1) the piece's own photo: named by piece name (e.g. "Silver Plain Bangle.jpeg") or by item id (e.g. "GRT-EAR-501.jpeg")
+  const own = [i.title, i.title.replace(/,/g, ''), PHOTO_ALIAS[i.id], i.id].filter((b, k, arr) => b && arr.indexOf(b) === k);
+  // 2) otherwise the shared photo for its style (e.g. "rings_band.jpg")
+  const shared = [styleBase(i)];
+  if (shared[0] === 'necklaces_layered') shared.push('necklaces_layered.');   // tolerates a file named "necklaces_layered..png"
+  return findPhoto(own).then(url => url || findPhoto(shared)).then(url => { i.img = url || ''; });
 })).then(() => {
   if (!inv.some(i => i.img)) {
     inv.forEach(i => { i.img = PLACEHOLDER; });
     return 'No photos were found. Keep the "images" folder next to this HTML file and open the file again.';
   }
-  const hidden = [];
-  for (let k = inv.length - 1; k >= 0; k--) if (!inv[k].img) hidden.push(inv.splice(k, 1)[0].id);
-  return hidden.length ? hidden.length + ' piece(s) hidden because no photo was found: ' + hidden.reverse().join(', ') : '';
+  const missing = inv.filter(i => !i.img);
+  missing.forEach(i => { i.img = PLACEHOLDER; });
+  return missing.length ? missing.length + ' piece(s) have no photo yet and show a "Photo coming soon" tile: ' + missing.slice(0, 6).map(i => i.id).join(', ') + (missing.length > 6 ? ' ...' : '') : '';
 });
 /* ===== END YOUR PHOTOS ===== */
 
 /* =====================================================================
    3. DROPDOWN OPTIONS
    ===================================================================== */
-const CATS = ['Earrings', 'Necklaces', 'Chains', 'Bangles', 'Rings'];
-const METALS = ['22K Gold', '18K Diamond', '24K Pure', 'Platinum'];
+const MATERIALS = ['Gold', 'Silver', 'Diamond'];
+const CAT_ORDER = ['Earrings', 'Necklaces', 'Chains', 'Bangles', 'Rings', 'Coins'];
+const CATS_BY_MAT = {};   // built from the inventory, so a category with no pieces is not offered
+MATERIALS.forEach(m => {
+  CATS_BY_MAT[m] = m === 'Diamond' ? ['Diamond jewellery'] : CAT_ORDER.filter(c => inv.some(i => i.material === m && i.category === c));
+});
+const METALS_BY_MAT = {
+  Gold: ['Any purity', '22K Gold', '24K Pure'],
+  Silver: ['Silver'],
+  Diamond: ['18K Diamond']
+};
 const STYLES = ['All', TP, BR, LD, CT];
-const WEIGHTS = [0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60];
+const WEIGHTS = [0, 0.5, 1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60, 80, 100, 150, 200, 250, 500];
 const TOLS = [0.25, 0.5, 1, 1.5, 2, 3, 5, 10];
 const BUDGETS = [
   { l: 'Any budget', min: 0, max: Infinity },
@@ -660,10 +787,10 @@ function fillSelect(id, opts, labelFn, valueFn) {
 }
 
 function filtered() {
-  const cat = $('f-cat').value, metal = $('f-metal').value, style = $('f-style').value;
+  const mat = $('f-mat').value, cat = $('f-cat').value, metal = $('f-metal').value, style = $('f-style').value;
   const tw = +$('f-wt').value, tol = +$('f-tol').value, bud = BUDGETS[+$('f-bud').value];
   return inv.filter(i =>
-    i.status !== 'Sold' && i.category === cat && i.metal === metal &&
+    i.status !== 'Sold' && i.material === mat && i.category === cat && (metal.indexOf('Any') === 0 || i.metal === metal) &&
     (style === 'All' || i.style === style) &&
     (tw === 0 || Math.abs(i.net - tw) <= tol + 1e-9) &&
     i.est >= bud.min && i.est <= bud.max
@@ -691,10 +818,10 @@ function sync() {
     const mine = shortlist.includes(i.id), blocked = !mine && i.status !== 'Available';
     return `<div class="card ${mine ? 'sel' : ''} ${blocked ? 'held' : ''}">
       <div>
-        <div class="ph" data-view="${i.id}"><img src="${i.img}" alt="${i.title}"><span class="b1">${i.metal === 'Platinum' ? 'Platinum ' + i.purity : i.purity + ' ' + (i.metal === '18K Diamond' ? 'Diamond' : 'Gold')}</span><span class="b2">${i.code}</span></div>
+        <div class="ph" data-view="${i.id}"><img src="${i.img}" alt="${i.title}"><span class="b1">${i.material === 'Gold' ? i.purity + ' Gold' : i.material === 'Silver' ? i.purity + ' Silver' : i.purity + ' Diamond'}</span><span class="b2">${i.code}</span></div>
         <div class="cbody"><div class="col">${i.collection}</div><h4>${i.title}</h4>
           <div class="wts"><div><span>Net wt</span><b>${i.net} g</b></div><div class="g"><span>Gross wt</span><b>${i.gross} g</b></div></div>
-          <div class="loc">${i.floor} • ${i.counter}</div><div class="vlink" data-view="${i.id}">View details →</div></div>
+          <div class="price"><span>Est. price</span><b>${fmt(i.est)}</b></div><div class="loc">${i.floor} • ${i.counter}</div><div class="vlink" data-view="${i.id}">View details →</div></div>
       </div>
       <div class="cbtn"><button data-id="${i.id}" class="${mine ? 'off' : blocked ? 'dis' : ''}" ${blocked ? 'disabled' : ''}>
         ${mine ? 'Remove from shortlist' : blocked ? 'Being viewed by another customer' : 'Add to shortlist'}</button></div>
@@ -769,7 +896,7 @@ function issuePass() {
   $('p-floor').textContent = first.floor.toUpperCase() + ': ' + first.category.toUpperCase();
   $('p-counter').textContent = first.counter + ' • ' + first.tray;
   $('p-qr').innerHTML = pseudoQr(activeToken);
-  $('p-items').innerHTML = items.map((it, n) => `<div class="pi"><span>${n+1}. <b style="color:var(--bur)">${it.id}</b> ${it.title}</span><span>${it.net} g • ${it.floor}, ${it.counter}</span></div>`).join('');
+  $('p-items').innerHTML = items.map((it, n) => `<div class="pi"><span>${n+1}. <b style="color:var(--bur)">${it.id}</b> ${it.title}</span><span>${it.net} g • ${fmt(it.est)} • ${it.floor}, ${it.counter}</span></div>`).join('');
   startTimer(900, false);
   $('pass-modal').classList.remove('hide');
 }
@@ -781,7 +908,7 @@ function openCompare() {
       <div class="cbody"><div class="col">${i.collection}</div><h4>${i.title}</h4>
         <div class="wts"><div><span>Net wt</span><b>${i.net} g</b></div><div class="g"><span>Gross wt</span><b>${i.gross} g</b></div></div>
         <div class="wts" style="margin-top:6px"><div class="g"><span>Purity</span><b>${i.purity}</b></div><div class="g"><span>Stone wt</span><b>${i.stone} g</b></div></div>
-        <div class="loc">${i.floor} • ${i.counter} • ${i.tray}</div></div></div>`).join('');
+        <div class="price"><span>Est. price</span><b>${fmt(i.est)}</b></div><div class="loc">${i.floor} • ${i.counter} • ${i.tray}</div></div></div>`).join('');
   $('cmp-modal').classList.remove('hide');
 }
 
@@ -794,15 +921,15 @@ function openDetail(id, keepScroll) {
   $('d-img').src = it.img; $('d-img').alt = it.title;
   $('d-col').textContent = it.collection;
   $('d-title').textContent = it.title;
-  $('d-desc').textContent = it.title + ' is a ' + it.style.toLowerCase() + ' piece in ' + it.metal + ' from the ' + it.collection + ' collection. It has ' + it.net + ' g of net gold (' + it.gross + ' g gross' + stoneTxt + '). You can see it at ' + it.floor + ', ' + it.counter + ', ' + it.tray + '.';
-  $('d-table').innerHTML = [['Metal', it.metal], ['Purity', it.purity], ['Net weight', it.net + ' g'], ['Gross weight', it.gross + ' g'], ['Stone weight', it.stone + ' g'], ['Style', it.style], ['Design code', it.code], ['Location', it.floor + ', ' + it.counter], ['Tray', it.tray], ['Availability', mine ? 'In your shortlist' : it.status === 'Available' ? 'Available to view' : 'With another customer']]
+  $('d-desc').textContent = it.title + ' is a ' + it.style.toLowerCase() + ' piece in ' + it.metal + ' from the ' + it.collection + ' collection. It has ' + it.net + ' g of net weight (' + it.gross + ' g gross' + stoneTxt + '). You can see it at ' + it.floor + ', ' + it.counter + ', ' + it.tray + '.';
+  $('d-table').innerHTML = [['Metal', it.metal], ['Purity', it.purity], ['Net weight', it.net + ' g'], ['Gross weight', it.gross + ' g'], ['Stone weight', it.stone + ' g'], ['Estimated price', fmt(it.est)], ['Style', it.style], ['Design code', it.code], ['Location', it.floor + ', ' + it.counter], ['Tray', it.tray], ['Availability', mine ? 'In your shortlist' : it.status === 'Available' ? 'Available to view' : 'With another customer']]
     .map(r => `<div><span>${r[0]}</span><b>${r[1]}</b></div>`).join('');
   const btn = $('d-btn');
   btn.textContent = mine ? 'Remove from shortlist' : blocked ? 'Being viewed by another customer' : 'Add to shortlist';
   btn.disabled = blocked; btn.className = 'dbtn ' + (mine ? 'off' : blocked ? 'dis' : '');
   const score = x => Math.abs(x.net - it.net) + (x.style === it.style ? 0 : 3);
   const sim = inv.filter(x => x.id !== id && x.category === it.category && x.metal === it.metal && x.status !== 'Sold').sort((a, b) => score(a) - score(b)).slice(0, 4);
-  $('d-sim').innerHTML = sim.length ? sim.map(x => `<div class="scard" data-view="${x.id}"><img src="${x.img}" alt=""><div><b>${x.title}</b><br><small>${x.net} g • ${x.floor}</small></div></div>`).join('') : '<p style="color:#857468;font-size:12px">No similar designs right now.</p>';
+  $('d-sim').innerHTML = sim.length ? sim.map(x => `<div class="scard" data-view="${x.id}"><img src="${x.img}" alt=""><div><b>${x.title}</b><br><small>${x.net} g • ${fmt(x.est)}</small></div></div>`).join('') : '<p style="color:#857468;font-size:12px">No similar designs right now.</p>';
   $('detail-modal').classList.remove('hide');
   if (!keepScroll) $('detail-body').scrollTop = 0;
 }
@@ -888,6 +1015,7 @@ function setMode(mode) {
 function runDemo() {
   resetSession(true);
   $('c-name').value = 'Smt. Ananya Krishnan';
+  $('f-mat').value = 'Gold'; $('f-mat').dispatchEvent(new Event('change'));
   $('f-cat').value = 'Earrings'; $('f-metal').value = '22K Gold'; $('f-wt').value = '5'; $('f-tol').value = '0.5'; $('f-bud').value = '0'; $('f-style').value = 'All';
   setMode('dual'); sync();
   filtered().filter(i => i.status === 'Available').slice(0, 3).forEach(i => toggle(i.id));
@@ -896,16 +1024,21 @@ function runDemo() {
 }
 
 function init() {
-  fillSelect('f-cat', CATS);
-  fillSelect('f-metal', METALS);
+  fillSelect('f-mat', MATERIALS);
+  const setCats = () => { fillSelect('f-cat', CATS_BY_MAT[$('f-mat').value]); fillSelect('f-metal', METALS_BY_MAT[$('f-mat').value]); $('cat-wrap').classList.toggle('hide', $('f-mat').value === 'Diamond'); };
+  const resetFilters = () => { $('f-metal').selectedIndex = 0; $('f-wt').value = '0'; $('f-tol').value = '0.5'; $('f-bud').value = '0'; $('f-style').value = 'All'; };
+  setCats();
   fillSelect('f-wt', WEIGHTS, w => w === 0 ? 'Any weight' : w.toFixed(1) + ' g');
   fillSelect('f-tol', TOLS, t => '± ' + t + ' g');
   fillSelect('f-bud', BUDGETS, b => b.l, (b, i) => i);
   fillSelect('f-style', STYLES, s => s === 'All' ? 'All styles' : s);
   $('f-wt').value = '5'; $('f-tol').value = '0.5';
-  $('rate-line').textContent = '22K ₹6,840 • 18K ₹5,600 • 24K ₹7,460';
+  $('f-metal').value = '22K Gold';
+  $('rate-line').textContent = '22K ₹6,840 • 24K ₹7,460 • 18K ₹5,600 • Silver ₹120';
 
-  ['f-cat','f-metal','f-wt','f-tol','f-bud','f-style'].forEach(id => $(id).addEventListener('change', sync));
+  ['f-metal','f-wt','f-tol','f-bud','f-style'].forEach(id => $(id).addEventListener('change', sync));
+  $('f-mat').addEventListener('change', () => { setCats(); resetFilters(); sync(); });
+  $('f-cat').addEventListener('change', () => { resetFilters(); sync(); });
   $('c-name').addEventListener('input', sync);
   $('tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setMode(b.dataset.mode); });
   $('k-grid').addEventListener('click', e => { const b = e.target.closest('button[data-id]'); if (b && !b.disabled) toggle(b.dataset.id); });
